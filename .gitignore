@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.open-next/
+.vinext/
+.worker-public/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+.dev.vars
+public/assets/reference/
+*.tsbuildinfo
+.DS_Store
+.wrangler/
