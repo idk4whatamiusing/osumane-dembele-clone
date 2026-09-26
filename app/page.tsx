@@ -5,7 +5,6 @@ import { contentForProfile } from "@/src/lib/media";
 import { ChapterNav } from "@/src/components/ChapterNav";
 import { ChapterTrack } from "@/src/components/ChapterTrack";
 import { Hero } from "@/src/components/Hero";
-import { HoldToPlayAudio } from "@/src/components/HoldToPlayAudio";
 import { Intro } from "@/src/components/Intro";
 import { MotionRoot } from "@/src/components/MotionRoot";
 import { Preloader } from "@/src/components/Preloader";
@@ -29,18 +28,13 @@ export default function Home() {
 
   return (
     <MotionRoot>
-      <div className="site-shell" style={style}>
+      <div className="site-shell" data-asset-profile={profile} style={style}>
         <Preloader name={person.name} />
         <ChapterNav
           name={person.name}
           items={person.chapters.map(({ id, navLabel }) => ({ id, label: navLabel }))}
           navigationLabel={person.labels.navigation}
           introductionLabel={person.labels.introduction}
-        />
-        <HoldToPlayAudio
-          audio={person.audio}
-          profile={profile}
-          unavailableLabel={person.labels.audioUnavailable}
         />
         <main id="content">
           <Hero person={person} profile={profile} />
@@ -62,11 +56,13 @@ export default function Home() {
           ))}
         </main>
         <SiteFooter
-          footer={person.footer}
-          scene={person.scene}
-          profile={profile}
-          label={person.labels.footer}
-          total={person.chapters.length}
+           footer={person.footer}
+           scene={person.scene}
+           audio={person.audio}
+           profile={profile}
+           label={person.labels.footer}
+           unavailableLabel={person.labels.audioUnavailable}
+           total={person.chapters.length}
         />
         <noscript>
           <p className="noscript-note">La version statique reste entièrement lisible sans JavaScript.</p>

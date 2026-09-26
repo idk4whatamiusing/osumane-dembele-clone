@@ -28,8 +28,11 @@ export function Hero({ person, profile }: HeroProps) {
         />
         <SceneEnhancement
           variant="hero"
-          model={model}
-          accent={person.scene.accent}
+           model={model}
+           hdr={person.scene.hdr ? resolveMediaPath(person.scene.hdr, profile) : undefined}
+           textures={person.scene.textures?.map((texture) => resolveMediaPath(texture, profile))}
+           particleCount={person.scene.heroParticles}
+           accent={person.scene.accent}
           fallbackLabel={person.scene.fallbackLabel}
         />
       </div>

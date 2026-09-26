@@ -1,24 +1,30 @@
 import type { CSSProperties } from "react";
-import type { AssetProfile, FooterContent, SceneContent } from "@/src/content/schema";
+import type { AssetProfile, AudioContent, FooterContent, SceneContent } from "@/src/content/schema";
 import { resolveMediaPath } from "@/src/lib/media";
 import { SceneEnhancement } from "./SceneEnhancement";
+import { HoldToPlayAudio } from "./HoldToPlayAudio";
 
 interface SiteFooterProps {
   footer: FooterContent;
   scene: SceneContent;
+  audio: AudioContent;
   profile: AssetProfile;
   label: string;
+  unavailableLabel: string;
   total: number;
 }
 
-export function SiteFooter({ footer, scene, profile, label, total }: SiteFooterProps) {
+export function SiteFooter({ footer, scene, audio, profile, label, unavailableLabel, total }: SiteFooterProps) {
   const style = { "--footer-accent": scene.accent } as CSSProperties;
   return (
     <footer id="credits" className="site-footer" style={style} aria-label={label}>
       <SceneEnhancement
         variant="footer"
-        model={resolveMediaPath(scene.model, profile)}
-        accent={scene.accent}
+         model={resolveMediaPath(scene.model, profile)}
+         hdr={scene.hdr ? resolveMediaPath(scene.hdr, profile) : undefined}
+         textures={scene.textures?.map((texture) => resolveMediaPath(texture, profile))}
+         particleCount={scene.footerParticles}
+         accent={scene.accent}
         fallbackLabel={scene.fallbackLabel}
       />
       <div className="site-footer__topline">
@@ -28,6 +34,11 @@ export function SiteFooter({ footer, scene, profile, label, total }: SiteFooterP
       <p className="site-footer__wordmark" aria-label={footer.wordmark}>
         {footer.wordmark}
       </p>
+      <HoldToPlayAudio
+        audio={audio}
+        profile={profile}
+        unavailableLabel={unavailableLabel}
+      />
       <div className="site-footer__credits">
         <h2>Crédits</h2>
         <dl>

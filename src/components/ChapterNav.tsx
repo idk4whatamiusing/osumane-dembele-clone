@@ -17,8 +17,7 @@ interface ChapterNavProps {
 export function ChapterNav({
   name,
   items,
-  navigationLabel,
-  introductionLabel
+  navigationLabel
 }: ChapterNavProps) {
   const [active, setActive] = useState<string | null>(null);
 
@@ -46,9 +45,6 @@ export function ChapterNav({
         {name}
       </a>
       <div className="site-nav__track">
-        <a href="#introduction" aria-current={active === "introduction" ? "location" : undefined}>
-          {introductionLabel}
-        </a>
         {items.map((item, index) => (
           <a
             key={item.id}

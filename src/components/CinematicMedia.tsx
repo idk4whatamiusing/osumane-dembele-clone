@@ -96,7 +96,6 @@ export function CinematicMedia({
             loop
             playsInline
             preload="metadata"
-            controls
             aria-label={media.description}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}

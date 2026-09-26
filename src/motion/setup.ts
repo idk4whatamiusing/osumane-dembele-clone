@@ -1,5 +1,22 @@
+function waitForLoader(): Promise<void> {
+  if (document.documentElement.dataset.loaderReady === "true") return Promise.resolve();
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener("ankhi:loader-ready", finish);
+      window.clearTimeout(timeout);
+      resolve();
+    };
+    const timeout = window.setTimeout(finish, 5200);
+    window.addEventListener("ankhi:loader-ready", finish, { once: true });
+  });
+}
+
 export async function createMotionExperience(root: HTMLElement | null): Promise<() => void> {
   if (!root) return () => undefined;
+  await waitForLoader();
 
   const [{ gsap }, scrollModule, drawModule, lenisModule] = await Promise.all([
     import("gsap"),
@@ -18,11 +35,12 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
   matchMedia.add("(min-width: 992px) and (prefers-reduced-motion: no-preference)", () => {
     const lenis = new Lenis({
       autoRaf: false,
-      duration: 1.05,
+      duration: 2,
       smoothWheel: true,
       syncTouch: false,
       wheelMultiplier: 0.9,
-      touchMultiplier: 1
+      touchMultiplier: 1,
+      easing: (value) => Math.min(1, 1.001 - Math.pow(2, -10 * value))
     });
     lenis.on("scroll", ScrollTrigger.update);
     const ticker = (time: number) => lenis.raf(time * 1000);
@@ -38,7 +56,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
           duration: 1.15,
           stagger: 0.08,
           ease: "power4.out",
-          delay: 1.8
+          delay: 0.15
         }
       );
 
@@ -88,15 +106,14 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
       gsap.utils.toArray<HTMLElement>("[data-chapter-track]").forEach((track) => {
         const shell = track.closest<HTMLElement>(".chapter-shell");
         if (!shell) return;
-        const distance = () =>
-          Math.max(0, track.scrollWidth - window.innerWidth + window.innerWidth * 0.24);
+        const distance = () => Math.max(0, track.scrollWidth - window.innerWidth + 3000);
         gsap.to(track, {
           x: () => -distance(),
           ease: "none",
           scrollTrigger: {
             trigger: shell,
             start: "top top",
-            end: () => `+=${distance() + window.innerHeight * 0.72}`,
+            end: () => `+=${distance()}`,
             pin: true,
             scrub: 0.75,
             anticipatePin: 1,
@@ -110,9 +127,9 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
         if (!image) return;
         gsap.fromTo(
           image,
-          { xPercent: -7 },
+          { xPercent: -12 },
           {
-            xPercent: 7,
+            xPercent: 12,
             ease: "none",
             scrollTrigger: {
               trigger: item,

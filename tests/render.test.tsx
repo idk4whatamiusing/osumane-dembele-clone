@@ -21,7 +21,8 @@ describe("semantic server rendering", () => {
     });
     expect(markup).toContain("aria-label=\"Écouter l’ambiance sonore\"");
     expect(markup).toContain("Crédits");
-    expect(markup).not.toContain("<canvas");
+    expect(markup).toContain("<canvas");
+    expect(markup).toContain("frame-sequence__fallback");
   });
 
   it("renders the document language and skip link", () => {

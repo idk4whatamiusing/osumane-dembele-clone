@@ -83,7 +83,11 @@ export function contentForProfile(person: PersonContent, profile: AssetProfile):
     },
     scene: {
       ...person.scene,
-      model: ownedFallbacks.model
+      model: ownedFallbacks.model,
+      hdr: undefined,
+      textures: [],
+      heroParticles: 900,
+      footerParticles: 300
     }
   };
 }

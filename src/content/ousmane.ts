@@ -76,8 +76,8 @@ const chapters: Chapter[] = [
       "Entre futsal, pelouses et terrains à sept, il apprend à enjamber les lignes. Le jeu devient un langage avant de devenir un métier.",
       "Cette liberté nourrit la confiance qui accompagnera toutes les étapes suivantes : oser, puis accélérer."
     ],
-    accent: "#b91f26",
-    foreground: "#fff8ed",
+    accent: "#981616",
+    foreground: "#fffcf5",
     stats: [
       { value: "1997", label: "année de naissance" },
       { value: "2004", label: "premiers pas à Évreux" }
@@ -110,8 +110,8 @@ const chapters: Chapter[] = [
       "Le jeune attaquant impose une identité : le dribble n’est pas une fin, mais le moyen de créer le décalage.",
       "En quelques mois, il passe des Espoirs à Ligue 1 et installe son nom dans le paysage du football français."
     ],
-    accent: "#171717",
-    foreground: "#ff6b6b",
+    accent: "#610505",
+    foreground: "#fffcf5",
     stats: [
       { value: "29", label: "matches en Rouge et Noir" },
       { value: "12", label: "buts en Ligue 1" }
@@ -145,8 +145,8 @@ const chapters: Chapter[] = [
       "Il découvre un football plus rapide, plus physique et plus exigeant. Ses statistiques deviennent rapidement remarquables.",
       "Un premier titre majeur et une nouvelle réputation : celle d’un joueur capable de déstabiliser un match entier."
     ],
-    accent: "#f2d51d",
-    foreground: "#151515",
+    accent: "#ffd400",
+    foreground: "#0d0d0d",
     stats: [
       { value: "42", label: "matches en Bundesliga" },
       { value: "10", label: "buts toutes compétitions" }
@@ -186,8 +186,8 @@ const chapters: Chapter[] = [
       "À Barcelone, l’individualité se confronte aux exigences du plus grand projet sportif collectif.",
       "Chaque retour renforce la confiance. Le jeu devient plus complet, plus patient et toujours plus spontané."
     ],
-    accent: "#951d2b",
-    foreground: "#e8bf65",
+    accent: "#05192e",
+    foreground: "#c1b28b",
     stats: [
       { value: "185", label: "matches sous le maillot blaugrana" },
       { value: "40", label: "buts toutes compétitions" }
@@ -227,8 +227,8 @@ const chapters: Chapter[] = [
       "Le numéro 10 associe l’insoumission de la rue, l’exigence de la plus grande scène et une identité devenue évidente.",
       "L’odyssée n’est plus une collection d’étapes, mais une trajectoire qui continue d’écrire."
     ],
-    accent: "#c52233",
-    foreground: "#fff8ed",
+    accent: "#091a34",
+    foreground: "#fffcf5",
     stats: [
       { value: "2023", label: "retour en France" },
       { value: "2025", label: "Ballon d’Or" }
@@ -266,10 +266,10 @@ const content: PersonContent = {
   seoDescription:
     "De la rue aux plus grandes scènes du football mondial, découvrez le parcours, la vitesse et la lumière d’Ousmane Dembélé.",
   theme: {
-    background: "#f0ede4",
-    surface: "#151515",
-    ink: "#151515",
-    muted: "#736e64"
+    background: "#efeeec",
+    surface: "#0d0d0d",
+    ink: "#0d0d0d",
+    muted: "#818180"
   },
   labels: {
     skip: "Aller au contenu",
@@ -333,9 +333,24 @@ const content: PersonContent = {
   },
   scene: {
     model: "/assets/reference/models/ballondor.glb",
+    hdr: "/assets/reference/hdr/theater.hdr",
+    textures: [
+      "/assets/reference/textures/nm0iCDZaub0a8OBl0U2ho.webp",
+      "/assets/reference/textures/RpznzQ0RukGloZg52lXw2.webp",
+      "/assets/reference/textures/6aXCATra7vxNOSImoUyk5.webp",
+      "/assets/reference/textures/xHLRZhx6xiihQNQZVrZy8.webp",
+      "/assets/reference/textures/esbtW6kLEocXqZych4GES.webp",
+      "/assets/reference/textures/whqDiRcuWF4eZFpAMZ8NM.webp",
+      "/assets/reference/textures/Py9gvKyhc5E4sPAImOOB2.webp",
+      "/assets/reference/textures/cUHRcakE4aY2VN0SSjIs9.webp",
+      "/assets/reference/textures/uBqwgD36UTj7gxGh2ysnx.webp",
+      "/assets/reference/textures/S8oIXOXc6OAfxVg1E2za1.webp"
+    ],
+    heroParticles: 3000,
+    footerParticles: 500,
     alt: "Scène 3D légère de Ballon Dor et de particules dorées",
     fallbackLabel: "Lumière et mouvement",
-    accent: "#c6a15b"
+    accent: "#c1b28b"
   },
   footer: {
     wordmark: "Ousmane Dembélé",

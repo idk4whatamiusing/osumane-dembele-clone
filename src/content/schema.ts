@@ -93,6 +93,10 @@ export interface AudioContent {
 
 export interface SceneContent {
   model: string;
+  hdr?: string;
+  textures?: string[];
+  heroParticles?: number;
+  footerParticles?: number;
   alt: string;
   fallbackLabel: string;
   accent: string;
@@ -306,6 +310,24 @@ export function validatePersonContent(person: PersonContent): void {
   assertText(person.audio.description, "audio.description");
   assertText(person.audio.transcript, "audio.transcript");
   assertLocalAsset(person.scene.model, "scene.model");
+  if (person.scene.hdr) assertLocalAsset(person.scene.hdr, "scene.hdr");
+  if (person.scene.textures) {
+    person.scene.textures.forEach((texture, index) =>
+      assertLocalAsset(texture, `scene.textures.${index}`)
+    );
+  }
+  if (
+    person.scene.heroParticles !== undefined &&
+    (!Number.isInteger(person.scene.heroParticles) || person.scene.heroParticles < 1)
+  ) {
+    throw new Error("scene.heroParticles must be a positive integer");
+  }
+  if (
+    person.scene.footerParticles !== undefined &&
+    (!Number.isInteger(person.scene.footerParticles) || person.scene.footerParticles < 1)
+  ) {
+    throw new Error("scene.footerParticles must be a positive integer");
+  }
   assertText(person.scene.alt, "scene.alt");
   assertText(person.scene.fallbackLabel, "scene.fallbackLabel");
   assertColor(person.scene.accent, "scene.accent");
