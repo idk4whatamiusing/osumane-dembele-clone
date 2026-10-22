@@ -1,6 +1,7 @@
 :root {
   --font-display: "Arial Black", Impact, Haettenschweiler, sans-serif;
   --font-text: "Helvetica Neue", Arial, Helvetica, sans-serif;
+  --font-signature: "Brush Script MT", "Segoe Script", cursive;
   --page-gutter: clamp(1.25rem, 3vw, 3.5rem);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -29,9 +30,42 @@
   font-weight: 900;
 }
 
+@font-face {
+  font-family: BeingInktraps;
+  src: url("/assets/reference/fonts/Being-BlackInktraps.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 900;
+}
+
+@font-face {
+  font-family: NetworkFreeVersion;
+  src: url("/assets/reference/fonts/NetworkFreeVersion.ttf") format("truetype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: PPNeueMontreal;
+  src: url("/assets/reference/fonts/PPNeueMontreal-Regular.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: PPNeueMontreal;
+  src: url("/assets/reference/fonts/PPNeueMontreal-Medium.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 500;
+}
+
 .site-shell[data-asset-profile="reference"] {
   --font-display: Being, Impact, sans-serif;
   --font-text: Doner, "Helvetica Neue", Arial, sans-serif;
+  --font-signature: NetworkFreeVersion, "Brush Script MT", cursive;
 }
 
 * {
@@ -39,15 +73,21 @@
 }
 
 html {
-  background: #efeeec;
+  background: #fffcf5;
   scroll-behavior: smooth;
-  scrollbar-color: #9d8260 #efeeec;
+  scrollbar-color: #9d8260 #fffcf5;
+}
+
+/* Lenis owns the scroll position once the motion runtime is live; native
+   smooth scrolling would fight it and break pinned sections. */
+html.motion-enhanced {
+  scroll-behavior: auto;
 }
 
 body {
   margin: 0;
   overflow-x: clip;
-  background: #f0ede4;
+  background: #fffcf5;
   color: #151515;
   font-family: var(--font-text);
   font-size: 16px;
@@ -166,17 +206,15 @@ ul {
 
 .preloader {
   position: fixed;
-  z-index: 150;
+  z-index: 200;
   inset: 0;
   display: grid;
   place-content: center;
-  gap: 1rem;
   overflow: hidden;
-  background: var(--page-bg, #f0ede4);
-  color: var(--page-ink, #151515);
-  text-align: center;
-  animation: preloader-away 4.2s var(--ease-out) forwards;
-  transition: opacity 0.45s ease, visibility 0.45s ease;
+  background: var(--page-bg, #fffcf5);
+  color: var(--page-accent, #c1b28b);
+  animation: preloader-away 2.2s var(--ease-out) forwards;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .preloader.is-ready {
@@ -185,56 +223,107 @@ ul {
   pointer-events: none;
 }
 
-.preloader__mark {
-  width: min(12rem, 58vw);
-  overflow: visible;
-  fill: none;
-  stroke: var(--page-accent, #c6a15b);
-  stroke-width: 1.2;
-  vector-effect: non-scaling-stroke;
-}
-
-.preloader__mark path {
-  stroke-dasharray: 260;
-  stroke-dashoffset: 260;
-  animation: loader-mark 1.7s var(--ease-out) forwards;
-}
-
-.preloader__mark path:nth-child(2) {
-  animation-delay: 0.35s;
-}
-
-.preloader__name {
-  max-width: 12ch;
-  font-family: var(--font-display);
-  font-size: clamp(2.4rem, 7vw, 7rem);
+.preloader__sig {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: BeingInktraps, "Brush Script MT", cursive;
+  font-size: clamp(3rem, 7.5vw, 7rem);
   font-weight: 900;
-  letter-spacing: -0.07em;
-  line-height: 0.78;
-  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+  transform: rotate(-3deg);
 }
 
-.preloader__line {
-  position: relative;
-  width: min(18rem, 64vw);
+.preloader__sig-line {
+  clip-path: inset(0 100% 0 0);
+  animation: sig-draw 1.6s cubic-bezier(0.55, 0, 0.35, 1) 0.25s forwards;
+}
+
+.preloader__bar {
+  position: absolute;
+  right: var(--page-gutter);
+  bottom: 2.5rem;
+  left: var(--page-gutter);
+  display: block;
   height: 1px;
   overflow: hidden;
-  background: rgba(21, 21, 21, 0.18);
+  background: color-mix(in srgb, var(--page-accent, #c1b28b) 24%, transparent);
 }
 
-.preloader__line::after {
-  position: absolute;
+.preloader__bar i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--page-accent, #c1b28b);
+  transform-origin: left center;
+  animation: sig-progress 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader {
+    animation: none;
+  }
+
+  .preloader__sig-line {
+    clip-path: none;
+    animation: none;
+  }
+}
+
+/* --- The grain that covers the whole site -------------------------------- */
+
+.grain-veil {
+  position: fixed;
+  z-index: 85;
   inset: 0;
-  background: #151515;
-  content: "";
-  transform: translateX(-100%);
-  animation: loader-line 1.4s var(--ease-out) forwards;
+  background-image: url("/assets/reference/images/grain.webp");
+  background-repeat: repeat;
+  background-size: 15rem 16.875rem;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
-.preloader__status {
-  font-size: 0.62rem;
-  letter-spacing: 0.22em;
+/* --- The wordmark pinned to the bottom of the viewport -------------------- */
+
+.wordmark {
+  position: fixed;
+  z-index: 70;
+  right: 0;
+  bottom: 1.5rem;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.wordmark p {
+  display: flex;
+  margin: 0;
+  color: var(--wordmark-accent, #c1b28b);
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 1;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wordmark__hero {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 var(--page-gutter);
+  font-size: clamp(1.5rem, 8.6vw, 8.4rem);
+  letter-spacing: -0.015em;
+}
+
+.wordmark__mini {
+  position: absolute;
+  bottom: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  opacity: 0;
 }
 
 .site-nav {
@@ -242,14 +331,10 @@ ul {
   z-index: 80;
   top: 0;
   left: 0;
-  display: flex;
   width: 100%;
-  height: 3.4rem;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 1.25rem var(--page-gutter) 0;
-  color: #fff;
-  mix-blend-mode: difference;
+  height: 2.75rem;
+  padding: 1.1rem var(--page-gutter) 0;
+  color: var(--nav-idle, #0d0d0d);
   pointer-events: none;
 }
 
@@ -270,29 +355,22 @@ ul {
 .site-nav__track {
   display: flex;
   width: 100%;
-  max-width: none;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 0;
 }
 
 .site-nav__track a {
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  font-size: 0.5rem;
-  font-weight: 900;
+  color: var(--nav-idle, #0d0d0d);
+  font-size: 0.45rem;
+  font-weight: 500;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
-  transition: opacity 0.25s ease;
+  text-transform: lowercase;
+  transition: color 0.5s ease;
 }
 
-.site-nav__track a span {
-  display: none;
-}
-
-.site-nav__track a[aria-current="location"]::after {
-  display: none;
+.site-nav__track a[aria-current="location"] {
+  color: var(--nav-highlight, #fffcf5);
 }
 
 .audio-control {
@@ -446,38 +524,44 @@ ul {
 
 .hero {
   position: relative;
-  min-height: 100svh;
+  z-index: 2;
+  display: grid;
+  height: 100svh;
+  place-items: center;
   overflow: hidden;
-  background: var(--page-bg, #efeeec);
-  color: var(--page-ink, #0d0d0d);
+  background: #0d0d0d;
+  --hero-veil: 1;
+}
+
+/* The cream of the opening screen fades away while the introduction
+   arrives, exactly like the fixed layer of the reference site. */
+.hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--page-bg, #fffcf5);
+  content: "";
+  opacity: var(--hero-veil, 1);
 }
 
 .hero__media {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
+  position: relative;
+  display: grid;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  background: transparent;
-  will-change: transform;
-}
-
-.hero__media::after {
-  display: none;
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  content: "";
+  place-items: center;
 }
 
 .hero__media > img {
+  display: none;
+}
+
+.scene-enhancement {
+  position: relative;
+  display: grid;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  filter: grayscale(1) contrast(1.05);
-  opacity: 0;
-  mix-blend-mode: multiply;
+  place-items: center;
 }
 
 .scene-enhancement {
@@ -512,7 +596,7 @@ ul {
   opacity: 0.82;
 }
 
-.scene-enhancement--hero .three-particle-scene {
+.scene-fallback--hero.is-enhanced {
   opacity: 0;
 }
 
@@ -570,196 +654,77 @@ ul {
   height: 100%;
 }
 
-.hero__copy {
-  position: relative;
-  z-index: 4;
-  display: flex;
-  min-height: 100svh;
-  width: 64vw;
-  flex-direction: column;
-  justify-content: center;
-  padding: 7rem var(--page-gutter) 5rem;
-  visibility: hidden;
-  opacity: 0;
-}
-
-.motion-enhanced .hero__copy {
-  visibility: hidden;
-  opacity: 0;
-}
-
-.hero__title {
-  display: flex;
-  flex-direction: column;
-  margin: 1.4rem 0 2.3rem;
-  font-family: var(--font-display);
-  font-size: clamp(5.5rem, 13.4vw, 14rem);
-  font-weight: 900;
-  letter-spacing: -0.09em;
-  line-height: 0.65;
-  text-transform: uppercase;
-}
-
-.hero__line {
-  display: block;
-  width: max-content;
-}
-
-.hero__line--2 {
-  margin-left: 0.34em;
-  color: var(--hero-accent);
-  font-family: Georgia, serif;
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.08em;
-  text-transform: lowercase;
-}
-
-.hero__line--3 {
-  margin-left: 0.08em;
-}
-
-.hero__summary {
-  max-width: 31rem;
-  margin-left: 19%;
-  font-size: clamp(1rem, 1.25vw, 1.35rem);
-  line-height: 1.45;
-}
-
-.hero__name {
-  position: absolute;
-  z-index: 3;
-  right: 0;
-  bottom: 1.4rem;
-  left: 0;
-  width: 100%;
-  color: var(--hero-accent, #c1b28b);
-  font-family: var(--font-display);
-  font-size: clamp(5rem, 9vw, 10.5rem);
-  font-weight: 900;
-  letter-spacing: -0.1em;
-  line-height: 0.72;
-  text-align: center;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.hero__scroll {
-  position: absolute;
-  z-index: 5;
-  bottom: 1.5rem;
-  left: var(--page-gutter);
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  color: var(--page-ink, #0d0d0d);
-  font-size: 0.58rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0 !important;
-  visibility: hidden;
-}
-
-.hero__scroll svg {
-  width: 0.8rem;
-  overflow: visible;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.2;
-  animation: scroll-nudge 1.6s ease-in-out infinite;
-}
-
 .intro {
   position: relative;
-  z-index: 5;
-  display: grid;
-  min-height: 100vh;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 5vw;
-  padding: clamp(7rem, 12vw, 13rem) var(--page-gutter);
-  background: var(--page-bg);
-}
-
-.motion-enhanced .intro {
-  min-height: 60svh;
+  z-index: 3;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 3.5rem;
+  padding: 14.5rem var(--page-gutter) 10rem;
   background: #0d0d0d;
   color: #fffcf5;
 }
 
-.motion-enhanced .intro__gallery {
-  display: none;
+.intro__head {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
 }
 
-.motion-enhanced .intro__copy {
-  color: #fffcf5;
-}
-
-.motion-enhanced .intro__copy p + p {
-  color: #cbc8c5;
-}
-
-.intro::before {
-  position: absolute;
-  top: 8%;
-  left: 48%;
-  width: 1px;
-  height: 84%;
-  background: color-mix(in srgb, var(--page-ink) 18%, transparent);
-  content: "";
-}
-
-.intro__lead h2 {
-  max-width: 12ch;
-  margin-top: 1.5rem;
+.intro__title {
+  display: flex;
+  margin: 0;
+  justify-content: center;
+  gap: 0.34em;
   font-family: var(--font-display);
-  font-size: clamp(3.4rem, 7.6vw, 8.5rem);
-  letter-spacing: -0.07em;
-  line-height: 0.86;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
   text-transform: uppercase;
 }
 
+.intro__word {
+  display: inline-block;
+  will-change: transform;
+}
+
 .intro__copy {
-  align-self: end;
-  max-width: 37rem;
-  padding-bottom: 4vh;
-  font-size: clamp(1.25rem, 2.1vw, 2.35rem);
-  letter-spacing: -0.035em;
-  line-height: 1.18;
+  max-width: 52rem;
+  font-size: 1.6875rem;
+  line-height: 1.45;
 }
 
 .intro__copy p + p {
-  margin-top: 1.2em;
-  color: var(--page-muted);
+  margin-top: 0.8em;
 }
 
-.intro__gallery {
+.site-footer__gallery {
   display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: 1.25fr 0.75fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.2rem;
-  margin-top: 5vw;
+  margin: 3rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.intro__gallery li {
+.site-footer__gallery li {
   position: relative;
   overflow: hidden;
   background: #181818;
 }
 
-.intro__gallery li:nth-child(3) {
-  grid-row: span 2;
-}
-
-.intro__gallery img {
+.site-footer__gallery img {
   width: 100%;
   height: 100%;
-  min-height: 26rem;
+  min-height: 14rem;
   object-fit: cover;
   filter: saturate(0.78);
 }
 
-.intro__gallery li > span,
-.chapter-panel--gallery li > span {
+.site-footer__gallery li > span {
   position: absolute;
   right: 0.8rem;
   bottom: 0.8rem;
@@ -776,22 +741,33 @@ ul {
   backdrop-filter: blur(10px);
 }
 
-.intro__gallery b,
-.chapter-panel--gallery b {
+.site-footer__gallery b {
   opacity: 0.55;
 }
 
+/* ---------------------------------------------------------------------------
+   Chapters
+
+   A chapter is four horizontal scenes, following the reference site:
+
+     1. the club mark with the shirt number worn by the player
+     2. the chapter title above a staggered grid of photographs
+     3. the kicker over the chapter portrait, closed by the statistics
+     4. the footage of the season under the headings of the chapter
+--------------------------------------------------------------------------- */
+
 .chapter-shell {
   position: relative;
-  z-index: 6;
   width: 100%;
   height: 100svh;
   overflow: hidden;
-  background: var(--chapter-accent);
-  color: var(--chapter-foreground);
+  background: var(--chapter-accent, #0d0d0d);
+  color: var(--chapter-foreground, #fffcf5);
 }
 
 .chapter-track {
+  position: relative;
+  z-index: 7;
   display: flex;
   width: max-content;
   height: 100%;
@@ -799,290 +775,300 @@ ul {
   will-change: transform;
 }
 
-.chapter-panel {
+.chapter-scene {
   position: relative;
   display: flex;
-  min-height: 100%;
   flex: 0 0 auto;
   flex-direction: column;
-  justify-content: center;
-  padding: 6.5rem var(--page-gutter) 4rem;
+  height: 100%;
+  padding: 5.5rem var(--page-gutter) 3.5rem;
   overflow: hidden;
 }
 
-.chapter-panel + .chapter-panel {
-  border-left: 1px solid color-mix(in srgb, var(--chapter-foreground) 22%, transparent);
-}
+/* --- Scene 1: the club mark and the shirt number ------------------------- */
 
-.chapter-panel--intro {
-  width: 56vw;
-}
-
-.chapter-panel--frame {
-  width: 42vw;
-  padding-right: 5vw;
-  padding-left: 5vw;
-}
-
-.chapter-panel--media {
-  width: 62vw;
-}
-
-.chapter-panel--stats {
-  width: 42vw;
-}
-
-.chapter-panel--gallery {
-  width: 132vw;
-}
-
-.chapter-panel--identity,
-.chapter-panel--feature {
+.chapter-scene--mark {
   width: 100vw;
-}
-
-.chapter-panel--identity {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(18rem, 0.82fr) minmax(22rem, 1.18fr);
   align-items: center;
-  gap: 4vw;
-}
-
-.chapter-panel__identity-art {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.chapter-panel__ghost {
-  position: absolute;
-  width: 82vw;
-  max-width: 82vw;
-  color: var(--chapter-accent);
-  font-family: var(--font-display);
-  font-size: clamp(5rem, 13vw, 15rem);
-  letter-spacing: -0.12em;
-  line-height: 0.7;
+  justify-content: center;
   text-align: center;
-  text-transform: uppercase;
-  transform: rotate(-7deg);
-  white-space: normal;
 }
 
-.chapter-panel__identity-stat {
-  position: absolute;
-  right: 8vw;
-  bottom: 8vh;
-  color: var(--chapter-foreground);
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 11vw, 12rem);
-  letter-spacing: -0.1em;
-  line-height: 0.7;
-  opacity: 0.9;
-}
-
-.chapter-panel__jersey-large {
+.chapter-scene__club {
   position: relative;
   z-index: 2;
-  width: min(20rem, 32vw);
-  max-height: 62vh;
-  object-fit: contain;
-  filter: drop-shadow(0 2rem 1.5rem rgba(0, 0, 0, 0.35));
-}
-
-.motion-enhanced .chapter-panel--identity {
-  display: grid;
-  grid-template-columns: 1fr;
-  place-items: center;
-  padding: 0;
-  background: #0d0d0d;
-}
-
-.motion-enhanced .chapter-panel__identity-copy {
-  position: absolute;
-  z-index: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.motion-enhanced .frame-sequence {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.motion-enhanced .chapter-panel--identity .frame-sequence {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.chapter-panel--identity .frame-sequence {
-  margin: 0 auto;
-}
-
-.chapter-panel--feature {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
-  align-items: center;
-  gap: 5vw;
-}
-
-.chapter-panel--gallery {
-  order: 3;
-}
-
-.chapter-panel--feature {
-  order: 2;
-}
-
-.motion-enhanced .chapter-panel--feature {
-  display: block;
-  padding: 0;
-  background: #0d0d0d;
-}
-
-.motion-enhanced .chapter-panel__feature-copy {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-}
-
-.motion-enhanced .chapter-panel__feature-copy > .eyebrow {
-  position: absolute;
-  z-index: 3;
-  top: 5.5rem;
-  left: var(--page-gutter);
-}
-
-.motion-enhanced .chapter-panel__feature-copy .cinematic-media,
-.motion-enhanced .chapter-panel__feature-copy > .chapter-panel__feature {
-  width: 100%;
-  height: 100%;
-  max-height: none;
   margin: 0;
+  color: var(--chapter-type, #981616);
+  font-family: BeingInktraps, "Brush Script MT", cursive;
+  font-size: clamp(2.6rem, 8vw, 8rem);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
 }
 
-.motion-enhanced .chapter-panel__feature-copy .cinematic-media__frame,
-.motion-enhanced .chapter-panel__feature-copy .cinematic-media video,
-.motion-enhanced .chapter-panel__feature-copy .cinematic-media__frame > img {
-  height: 100%;
-  min-height: 100svh;
+.chapter-scene__numerals {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 0;
+  display: flex;
+  margin: 0;
+  color: var(--chapter-foreground, #fffcf5);
+  font-family: Being, Impact, sans-serif;
+  font-size: clamp(8rem, 22vw, 22rem);
+  letter-spacing: -0.09em;
+  line-height: 0.8;
+  transform: translateY(-50%);
+}
+
+.chapter-scene__numerals span {
+  display: block;
+  width: 0.62em;
+}
+
+/* --- Scene 2: the chapter title and the photographs ---------------------- */
+
+.chapter-scene--title {
+  width: 2160px;
+  justify-content: center;
+}
+
+.chapter-scene__display {
+  margin: 0;
+  color: var(--chapter-type, #981616);
+  font-family: Being, Impact, sans-serif;
+  font-size: clamp(3.4rem, 9.4vw, 8.4375rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.chapter-scene__strip {
+  display: grid;
+  grid-template-columns: 432px 432px;
+  gap: 7rem 4rem;
+  margin: 4.5rem 0 0 5.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter-scene__strip li:nth-child(2n) {
+  transform: translateX(213px);
+}
+
+.chapter-scene__strip li {
+  position: relative;
+  overflow: hidden;
+  background: #060606;
+}
+
+.chapter-scene__strip img {
+  width: 100%;
+  height: 166px;
   object-fit: cover;
 }
 
-.motion-enhanced .chapter-panel__feature-copy .cinematic-media figcaption {
-  position: absolute;
-  right: var(--page-gutter);
-  bottom: 1.5rem;
-  left: var(--page-gutter);
-  padding: 0;
-  color: #fffcf5;
-}
-
-.motion-enhanced .chapter-panel__secondary-media {
-  display: none;
-}
-
-.motion-enhanced .chapter-panel__stats-copy {
-  position: absolute;
-  z-index: 3;
-  right: var(--page-gutter);
-  bottom: 4rem;
-  width: min(24rem, 34vw);
-  padding: 1.5rem;
-  background: rgba(13, 13, 13, 0.72);
-  backdrop-filter: blur(10px);
-}
-
-.motion-enhanced .chapter-panel__stats-copy dl {
-  margin-top: 1.5rem;
-}
-
-.motion-enhanced .chapter-panel__jersey {
-  display: none;
-}
-
-.chapter-panel__stats-copy dl {
-  display: grid;
-  margin-top: 3rem;
-  border-top: 1px solid currentColor;
-}
-
-.chapter-panel__stats-copy dl > div {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 2rem;
-  padding: 1.2rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--chapter-foreground) 35%, transparent);
-}
-
-.chapter-panel__index {
-  position: absolute;
-  top: 5.5rem;
-  right: var(--page-gutter);
-  left: var(--page-gutter);
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
-}
-
-.chapter-panel__index svg {
-  width: 100%;
-  height: 1rem;
-}
-
-.chapter-panel__index path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-}
-
-.chapter-panel--intro h2 {
-  max-width: 8ch;
-  margin: 1.2rem 0;
-  font-family: var(--font-display);
-  font-size: clamp(5rem, 10vw, 11rem);
-  letter-spacing: -0.085em;
-  line-height: 0.76;
+.chapter-scene__strip li > span {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(13, 13, 13, 0.86);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
   text-transform: uppercase;
 }
 
-.chapter-panel__kicker {
-  max-width: 22ch;
-  font-family: Georgia, serif;
-  font-size: clamp(1.4rem, 2.3vw, 2.6rem);
-  font-style: italic;
-  line-height: 1.05;
+.chapter-scene__strip b {
+  color: var(--chapter-type, #981616);
+  font-weight: 700;
 }
 
-.chapter-panel__copy {
-  max-width: 35rem;
-  margin: 3rem 0 0 auto;
-  font-size: clamp(0.95rem, 1.08vw, 1.18rem);
+/* --- Scene 3: the portrait, the kicker and the statistics ---------------- */
+
+.chapter-scene--portrait {
+  width: 100vw;
+  justify-content: space-between;
 }
 
-.chapter-panel__copy p + p {
-  margin-top: 1em;
-  opacity: 0.72;
+.chapter-scene__portrait-media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
 }
+
+.chapter-scene__portrait-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.7) brightness(0.9);
+}
+
+.chapter-scene__portrait-media::after {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--chapter-type, #981616) 55%, #ff3b1f);
+  content: "";
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+}
+
+.chapter-scene__headline {
+  position: relative;
+  z-index: 2;
+  max-width: min(40rem, 46vw);
+}
+
+.chapter-scene__display--kicker {
+  font-size: clamp(2.4rem, 9.4vw, 8.4375rem);
+}
+
+.chapter-scene__body {
+  position: relative;
+  z-index: 2;
+  align-self: center;
+  width: min(23rem, 24vw);
+  margin-left: auto;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--chapter-foreground, #fffcf5) 85%, transparent);
+}
+
+.chapter-scene__body p + p {
+  margin-top: 0.9em;
+}
+
+.chapter-scene__stats {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 0;
+}
+
+.chapter-scene__stat {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.chapter-scene__stat dt {
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.chapter-scene__stat dd {
+  margin: 0;
+  color: transparent;
+  font-family: Being, Impact, sans-serif;
+  font-size: clamp(3rem, 18.75vw, 16.875rem);
+  letter-spacing: -0.02em;
+  line-height: 0.8;
+  -webkit-text-stroke: 1.5px var(--chapter-foreground, #fffcf5);
+}
+
+/* --- The footage of the season -------------------------------------------- */
+
+.chapter-scene__film {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  background: #060606;
+  opacity: 0;
+}
+
+.chapter-scene__film img,
+.chapter-scene__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chapter-scene__overlay {
+  position: absolute;
+  z-index: 3;
+  top: 5.5rem;
+  left: 0;
+  padding: 0 var(--page-gutter);
+  opacity: 0;
+}
+
+.chapter-scene__overlay-title,
+.chapter-scene__overlay-subtitle {
+  margin: 0;
+  font-family: Being, Impact, sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-weight: 900;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.chapter-scene__overlay-title {
+  color: #fff;
+}
+
+.chapter-scene__overlay-subtitle {
+  color: var(--chapter-type, #981616);
+}
+
+.chapter-shell__index {
+  position: absolute;
+  z-index: 3;
+  top: 3.5rem;
+  right: var(--page-gutter);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  opacity: 0.55;
+}
+
+.chapter-shell__index i {
+  display: block;
+  width: 6rem;
+  height: 1px;
+  background: currentColor;
+}
+
+/* --- The frame stage ------------------------------------------------------ */
+
+/* The stage lives inside the chapter shell so the rotating jersey sits
+   between the chapter background and the scenes that scroll over it. */
+.frame-stage {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: var(--frame-stage-opacity, 0);
+  pointer-events: none;
+  transform: translate3d(0, var(--frame-stage-y, 0), 0);
+  will-change: transform, opacity;
+}
+
+/* --- Split text ----------------------------------------------------------- */
+
+.split-char,
+.split-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.split-char__inner,
+.split-word__inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* --- The chapter media fallback ------------------------------------------- */
 
 .frame-sequence {
   position: relative;
@@ -1114,7 +1100,6 @@ ul {
 }
 
 .frame-sequence__fallback,
-.frame-sequence__canvas,
 .frame-sequence__mobile {
   position: absolute;
   inset: 5% 13%;
@@ -1122,16 +1107,6 @@ ul {
   height: 90%;
   object-fit: contain;
   filter: drop-shadow(0 2rem 2.5rem rgba(0, 0, 0, 0.3));
-}
-
-.frame-sequence__canvas {
-  z-index: 1;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.frame-sequence__canvas[data-loaded="true"] {
-  opacity: 1;
 }
 
 .frame-sequence__mobile {
@@ -1160,20 +1135,8 @@ ul {
   text-transform: uppercase;
 }
 
-.chapter-panel__feature {
-  width: 100%;
-  max-height: 52vh;
-  margin: 1.4rem 0 2rem;
-  object-fit: cover;
-}
-
 .cinematic-media {
   width: min(100%, 48rem);
-}
-
-.chapter-panel__secondary-media {
-  width: min(100%, 34rem);
-  margin-top: 1.2rem;
 }
 
 .cinematic-media__frame {
@@ -1213,71 +1176,6 @@ ul {
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.chapter-panel--stats dl {
-  display: grid;
-  margin-top: 3rem;
-  border-top: 1px solid currentColor;
-}
-
-.chapter-panel--stats dl > div {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 2rem;
-  padding: 1.2rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--chapter-foreground) 35%, transparent);
-}
-
-.chapter-panel--stats dt,
-.chapter-panel__stats-copy dt {
-  max-width: 18ch;
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.chapter-panel--stats dd {
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 8vw, 9rem);
-  letter-spacing: -0.08em;
-  line-height: 0.75;
-}
-
-.chapter-panel__jersey {
-  width: min(18rem, 60%);
-  margin: 4rem auto 0;
-  object-fit: contain;
-}
-
-.chapter-panel--gallery > .eyebrow {
-  margin-bottom: 2rem;
-}
-
-.chapter-panel--gallery ul {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem;
-}
-
-.chapter-panel--gallery li {
-  position: relative;
-  height: min(62vh, 42rem);
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.14);
-}
-
-.chapter-panel--gallery li:nth-child(3),
-.chapter-panel--gallery li:nth-child(4) {
-  height: min(49vh, 33rem);
-}
-
-.chapter-panel--gallery img {
-  width: 112%;
-  max-width: none;
-  height: 100%;
-  object-fit: cover;
 }
 
 .site-footer {
@@ -1398,17 +1296,19 @@ ul {
   100% { transform: translate3d(-2%, -2%, 0); }
 }
 
-@keyframes loader-mark {
-  to { stroke-dashoffset: 0; }
+@keyframes sig-draw {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 -4% 0 0); }
+}
+
+@keyframes sig-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 @keyframes preloader-away {
-  0%, 72% { visibility: visible; opacity: 1; }
+  0%, 62% { visibility: visible; opacity: 1; }
   100% { visibility: hidden; opacity: 0; }
-}
-
-@keyframes loader-line {
-  to { transform: translateX(0); }
 }
 
 @keyframes sound-ring {
@@ -1492,11 +1392,16 @@ ul {
   }
 
   .hero__media::after {
-    background: linear-gradient(180deg, rgba(15, 15, 15, 0.15), rgba(15, 15, 15, 0.2) 35%, #101010 92%);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--page-bg, #fffcf5) 30%, transparent) 0%,
+      color-mix(in srgb, var(--page-bg, #fffcf5) 72%, transparent) 46%,
+      var(--page-bg, #fffcf5) 88%
+    );
   }
 
   .hero__media > img {
-    opacity: 0;
+    opacity: var(--hero-photo-opacity, 0.42);
   }
 
   .scene-enhancement--hero {
@@ -1519,69 +1424,28 @@ ul {
     height: 30vw;
   }
 
-  .hero__copy {
-    width: 100%;
-    min-height: 100svh;
-    justify-content: flex-end;
-    padding-top: 7rem;
-    padding-bottom: 8.5rem;
-  }
-
-  .hero__title {
-    margin: 1rem 0 1.5rem;
-    font-size: clamp(4.6rem, 22vw, 8rem);
-    line-height: 0.7;
-  }
-
-  .hero__line--2 {
-    margin-left: 0.18em;
-  }
-
-  .hero__summary {
-    max-width: 25rem;
-    margin-left: 0;
-    font-size: 0.95rem;
-  }
-
-  .hero__name {
-    right: 0;
-    bottom: 1.1rem;
-    left: 0;
-    width: 100%;
-    max-width: none;
-    font-size: 9.5vw;
-    line-height: 0.78;
-    white-space: nowrap;
-  }
-
-  .hero__scroll {
-    bottom: 1rem;
-  }
-
   .intro {
     display: block;
     min-height: auto;
-    padding-top: 7rem;
+    padding-top: 9rem;
     padding-bottom: 7rem;
   }
 
-  .intro::before {
-    display: none;
-  }
-
-  .intro__lead h2 {
-    max-width: 10ch;
-    font-size: clamp(3.5rem, 16vw, 6.5rem);
+  .intro__title {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.2em 0.3em;
+    font-size: clamp(2.6rem, 13vw, 5rem);
   }
 
   .intro__copy {
     max-width: 31rem;
     margin-top: 3rem;
     padding: 0;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
   }
 
-  .intro__gallery {
+  .site-footer__gallery {
     display: flex;
     width: calc(100% + 2.3rem);
     gap: 0.8rem;
@@ -1592,7 +1456,7 @@ ul {
     scrollbar-width: none;
   }
 
-  .intro__gallery li {
+  .site-footer__gallery li {
     width: 82vw;
     height: 62vh;
     min-height: 28rem;
@@ -1604,7 +1468,7 @@ ul {
     grid-row: auto;
   }
 
-  .intro__gallery img {
+  .site-footer__gallery img {
     min-height: 0;
   }
 
@@ -1621,34 +1485,71 @@ ul {
     transform: none !important;
   }
 
-  .chapter-panel {
+  .chapter-scene {
     width: 100%;
     min-height: auto;
     padding: 7.5rem var(--page-gutter) 5rem;
     overflow: visible;
   }
 
-  .chapter-panel + .chapter-panel {
-    border-top: 1px solid color-mix(in srgb, var(--chapter-foreground) 22%, transparent);
-    border-left: 0;
+  .chapter-scene--mark {
+    min-height: 58vh;
   }
 
-.chapter-panel--intro h2,
-.chapter-panel--identity h2 {
-    font-size: clamp(4.4rem, 20vw, 8rem);
+  .chapter-scene__club {
+    font-size: clamp(3rem, 13vw, 5rem);
   }
 
-  .chapter-panel__kicker {
-    font-size: 1.5rem;
+  .chapter-scene__numerals {
+    font-size: clamp(7rem, 36vw, 13rem);
   }
 
-  .chapter-panel__copy {
-    margin-top: 2.5rem;
-    font-size: 0.95rem;
+  .chapter-scene--strip {
+    gap: 1.5rem;
   }
 
-  .chapter-panel__index {
+  .chapter-scene__title {
+    font-size: clamp(2.8rem, 12vw, 5rem);
+  }
+
+  .chapter-scene__strip-list {
+    grid-template-columns: 1fr;
+  }
+
+  .chapter-scene--portrait {
+    min-height: 100svh;
+    padding: 6rem var(--page-gutter) 4rem;
+  }
+
+  .chapter-scene__portrait-media {
+    position: relative;
+    inset: auto;
+    height: 44vh;
+    margin-bottom: 1.5rem;
+  }
+
+  .chapter-scene__copy {
+    max-width: 100%;
+  }
+
+  .chapter-scene__kicker {
+    font-size: clamp(2rem, 9vw, 3.4rem);
+  }
+
+  .chapter-scene__body {
+    margin-left: 0;
+  }
+
+  .chapter-scene__stat dd {
+    font-size: clamp(2.6rem, 12vw, 4.5rem);
+  }
+
+  .chapter-shell__index {
     top: 2.3rem;
+  }
+
+  .frame-stage {
+    display: none;
   }
 
   .frame-sequence {
@@ -1670,33 +1571,7 @@ ul {
   .frame-sequence img {
     width: min(78%, 22rem);
   }
-
-  .chapter-panel__feature {
-    height: 58vh;
-    max-height: none;
-  }
-
-  .chapter-panel--stats dl {
-    margin-top: 2.5rem;
-  }
-
-.chapter-panel--stats dd,
-.chapter-panel__stats-copy dd {
-    font-size: clamp(4rem, 22vw, 8rem);
-  }
-
-  .chapter-panel--gallery ul {
-    display: block;
-  }
-
-  .chapter-panel--gallery li,
-  .chapter-panel--gallery li:nth-child(3),
-  .chapter-panel--gallery li:nth-child(4) {
-    width: 100%;
-    height: 56vh;
-    min-height: 26rem;
-    margin-bottom: 0.8rem;
-  }
+}
 
 .chapter-shell {
   height: auto;
@@ -1708,17 +1583,9 @@ ul {
   display: block;
   width: 100%;
   height: auto;
-  transform: none !important;
 }
 
-.chapter-panel,
-.chapter-panel--intro,
-.chapter-panel--frame,
-.chapter-panel--media,
-.chapter-panel--stats,
-.chapter-panel--gallery,
-.chapter-panel--identity,
-.chapter-panel--feature {
+.chapter-scene {
   width: 100%;
   min-height: 100svh;
 }
@@ -1727,6 +1594,7 @@ ul {
   height: 100svh;
   min-height: 0;
   overflow: hidden;
+  background: var(--chapter-accent, #0d0d0d);
 }
 
 .motion-enhanced .chapter-track {
@@ -1735,36 +1603,28 @@ ul {
   height: 100%;
 }
 
-.motion-enhanced .chapter-panel {
+.motion-enhanced .chapter-scene {
+  height: 100%;
   min-height: 100%;
 }
 
-.motion-enhanced .chapter-panel--intro {
-  width: 56vw;
-}
-
-.motion-enhanced .chapter-panel--frame {
-  width: 42vw;
-}
-
-.motion-enhanced .chapter-panel--media {
-  width: 62vw;
-}
-
-.motion-enhanced .chapter-panel--stats {
-  width: 42vw;
-}
-
-.motion-enhanced .chapter-panel--gallery {
-  width: 132vw;
-}
-
-.motion-enhanced .chapter-panel--identity,
-.motion-enhanced .chapter-panel--feature {
+.motion-enhanced .chapter-scene--mark,
+.motion-enhanced .chapter-scene--portrait {
   width: 100vw;
 }
 
-.site-footer {
+.motion-enhanced .chapter-scene--title {
+  width: 2160px;
+}
+
+/* On the enhanced layout the rotating jersey is painted by the global frame
+   stage, so the poster is not needed behind the scenes. */
+.motion-enhanced .frame-sequence {
+  display: none;
+}
+
+@media (max-width: 991px) {
+  .site-footer {
     min-height: 100svh;
   }
 
@@ -1809,31 +1669,104 @@ ul {
     transform: none !important;
   }
 
-  .motion-enhanced .chapter-panel,
-  .motion-enhanced .chapter-panel--intro,
-  .motion-enhanced .chapter-panel--frame,
-  .motion-enhanced .chapter-panel--media,
-  .motion-enhanced .chapter-panel--stats,
-  .motion-enhanced .chapter-panel--gallery {
+  .motion-enhanced .chapter-scene {
     width: 100%;
     min-height: auto;
   }
 }
 
 @media (max-width: 991px) {
-  .chapter-panel--identity,
-  .chapter-panel--feature {
+  .chapter-scene--mark,
+  .chapter-scene--title,
+  .chapter-scene--portrait {
     display: block;
     width: 100%;
+    min-height: auto;
+    padding: 6.5rem var(--page-gutter) 4rem;
   }
 
-  .chapter-panel--identity .frame-sequence {
+  .chapter-scene__club {
+    font-size: clamp(2.6rem, 13vw, 5rem);
+  }
+
+  .chapter-scene__numerals {
+    position: static;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: clamp(7rem, 34vw, 13rem);
+    transform: none;
+  }
+
+  .chapter-scene__display {
+    font-size: clamp(2.6rem, 12vw, 5rem);
+  }
+
+  .chapter-scene__strip {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+    margin: 2.5rem 0 0;
+  }
+
+  .chapter-scene__strip li:nth-child(2n) {
+    transform: none;
+  }
+
+  .chapter-scene__strip img {
+    height: auto;
+    aspect-ratio: 1470 / 552;
+  }
+
+  .chapter-scene__portrait-media {
+    position: relative;
+    inset: auto;
+    height: 42vh;
+    margin-bottom: 1.5rem;
+  }
+
+  .chapter-scene__headline {
+    max-width: 100%;
+  }
+
+  .chapter-scene__body {
+    width: 100%;
+    margin: 2rem 0 0;
+  }
+
+  .chapter-scene__stats {
+    margin-top: 2.5rem;
+  }
+
+  .chapter-scene__stat dd {
+    font-size: clamp(2.4rem, 12vw, 4.5rem);
+  }
+
+  .chapter-scene__film {
+    position: relative;
+    inset: auto;
+    height: 42vh;
+    margin-bottom: 1.5rem;
+    opacity: 1;
+  }
+
+  .chapter-scene__overlay {
+    position: relative;
+    top: auto;
+    margin-top: 2rem;
+    opacity: 1;
+  }
+
+  .chapter-scene--portrait .frame-sequence {
+    display: grid;
     width: 100%;
     margin: 3rem auto 0;
   }
 
-  .chapter-panel__stats-copy {
-    margin-top: 3rem;
+  .wordmark__hero {
+    font-size: 7.6vw;
+  }
+
+  .grain-veil {
+    opacity: 0.28;
   }
 }
 
@@ -1868,14 +1801,22 @@ ul {
     transform: none !important;
   }
 
-  .chapter-panel {
+  .chapter-scene {
     width: 100%;
     min-height: auto;
     padding-top: 8rem;
     padding-bottom: 6rem;
   }
 
-  .chapter-panel--gallery ul {
+  .chapter-scene__strip {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chapter-scene__strip li:nth-child(2n) {
+    transform: none;
+  }
+
+  .frame-stage {
+    display: none;
   }
 }

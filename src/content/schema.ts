@@ -81,6 +81,18 @@ export interface Chapter {
   featureVideo?: VideoMedia;
   frameSequence: FrameSequence;
   mobileVideo: VideoMedia;
+  /** Club mark rendered in the brush script, e.g. "FC Évreux". */
+  clubName: string;
+  /** Shirt number worn by the player at the club, e.g. "10". */
+  shirtNumber: string;
+  /** Colour of the display type and of the club mark. */
+  typeColor: string;
+  /** Colour of the inactive navigation links while the chapter is on screen. */
+  navColor: string;
+  /** Colour of the navigation link of the chapter on screen. */
+  navActiveColor: string;
+  /** Headings of the full bleed footage scene. */
+  overlay: { title: string; subtitle: string };
 }
 
 export interface AudioContent {
@@ -125,6 +137,8 @@ export interface HeroContent {
 export interface IntroContent {
   eyebrow: string;
   title: string;
+  /** Words of the display title, revealed one by one and scattered on scroll. */
+  titleLines: string[];
   paragraphs: string[];
   gallery: GalleryImage[];
 }
@@ -258,6 +272,13 @@ export function validatePersonContent(person: PersonContent): void {
     }
     ids.add(chapter.id);
     assertText(chapter.navLabel, `${chapter.id}.navLabel`);
+    assertText(chapter.clubName, `${chapter.id}.clubName`);
+    assertText(chapter.shirtNumber, `${chapter.id}.shirtNumber`);
+    assertColor(chapter.typeColor, `${chapter.id}.typeColor`);
+    assertColor(chapter.navColor, `${chapter.id}.navColor`);
+    assertColor(chapter.navActiveColor, `${chapter.id}.navActiveColor`);
+    assertText(chapter.overlay.title, `${chapter.id}.overlay.title`);
+    assertText(chapter.overlay.subtitle, `${chapter.id}.overlay.subtitle`);
     assertText(chapter.title, `${chapter.id}.title`);
     assertText(chapter.kicker, `${chapter.id}.kicker`);
     assertText(chapter.period, `${chapter.id}.period`);

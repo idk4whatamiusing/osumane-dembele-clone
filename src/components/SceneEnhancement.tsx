@@ -1,12 +1,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 const ThreeParticleScene = dynamic(
   () => import("@/src/scenes/ThreeParticleScene").then((module) => module.ThreeParticleScene),
   { ssr: false }
 );
+
+// The particle field is rendered on the server as well, so every value has
+// to be rounded: `Math.cos`/`Math.sqrt` are allowed to differ in the last
+// bits between the Node and the browser engine, which would break hydration.
+const round = (value: number) => Math.round(value * 1000) / 1000;
 
 const fallbackParticles = Array.from({ length: 520 }, (_, index) => {
   const vertical = 1 - (2 * (index + 0.5)) / 520;
@@ -16,11 +21,11 @@ const fallbackParticles = Array.from({ length: 520 }, (_, index) => {
   const perspective = 1 / (1.18 - depth * 0.16);
   const size = (0.62 + ((index * 17) % 13) / 18) * perspective;
   return {
-    x: 50 + Math.cos(angle) * radial * 48,
-    y: 50 + vertical * 48,
-    size,
+    x: round(50 + Math.cos(angle) * radial * 48),
+    y: round(50 + vertical * 48),
+    size: round(size),
     rotation: (index * 29) % 90,
-    opacity: 0.42 + ((index * 13) % 55) / 100
+    opacity: round(0.42 + ((index * 13) % 55) / 100)
   };
 });
 
@@ -43,17 +48,46 @@ export function SceneEnhancement({
   accent,
   fallbackLabel
 }: SceneEnhancementProps) {
-  const [enabled, setEnabled] = useState(false);
+  const [sceneSupported, setSceneSupported] = useState(false);
+  const [enhanced, setEnhanced] = useState(false);
+  const readyRef = useRef(false);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
-    const update = () => setEnabled(!reduced.matches && Boolean(context));
+    const update = () => {
+      setSceneSupported(!reduced.matches && Boolean(context));
+      if (reduced.matches) setEnhanced(false);
+    };
     update();
+    // Release the probe context immediately so it cannot starve the real renderer.
+    context?.getExtension("WEBGL_lose_context")?.loseContext();
     reduced.addEventListener("change", update);
     return () => reduced.removeEventListener("change", update);
   }, []);
+
+  const handleReady = useCallback(() => {
+    readyRef.current = true;
+    setEnhanced(true);
+  }, []);
+
+  const handleFail = useCallback((reason: string) => {
+    console.warn(`[scene] WebGL scene disabled (${reason}); keeping CSS fallback.`);
+    (window as unknown as { __sceneFail?: string }).__sceneFail = reason;
+    setEnhanced(false);
+    setSceneSupported(false);
+  }, []);
+
+  // Watchdog: the scene mounted but never signalled its first render
+  // (dynamic import stall, zero-sized container, silent renderer failure).
+  useEffect(() => {
+    if (!sceneSupported || readyRef.current) return;
+    const timer = setTimeout(() => {
+      if (!readyRef.current) handleFail("timeout: no first render within 3s");
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [sceneSupported, handleFail]);
 
   return (
     <div
@@ -64,7 +98,7 @@ export function SceneEnhancement({
     >
       <span className="sr-only">{fallbackLabel}</span>
       <div
-        className={`scene-fallback scene-fallback--${variant}${enabled ? " is-enhanced" : ""}`}
+        className={`scene-fallback scene-fallback--${variant}${enhanced ? " is-enhanced" : ""}`}
         aria-hidden="true"
       >
         {variant === "hero" ? (
@@ -89,7 +123,7 @@ export function SceneEnhancement({
           </>
         )}
       </div>
-      {enabled ? (
+      {sceneSupported ? (
         <ThreeParticleScene
           variant={variant}
           model={model}
@@ -97,6 +131,8 @@ export function SceneEnhancement({
           textures={textures}
           particleCount={particleCount}
           accent={accent}
+          onReady={handleReady}
+          onFail={handleFail}
         />
       ) : null}
     </div>

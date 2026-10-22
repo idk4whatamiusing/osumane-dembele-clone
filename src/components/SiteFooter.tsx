@@ -1,20 +1,39 @@
 import type { CSSProperties } from "react";
-import type { AssetProfile, AudioContent, FooterContent, SceneContent } from "@/src/content/schema";
+import type {
+  AssetProfile,
+  AudioContent,
+  FooterContent,
+  GalleryImage,
+  SceneContent
+} from "@/src/content/schema";
 import { resolveMediaPath } from "@/src/lib/media";
 import { SceneEnhancement } from "./SceneEnhancement";
 import { HoldToPlayAudio } from "./HoldToPlayAudio";
+import { SafeImage } from "./SafeImage";
 
 interface SiteFooterProps {
   footer: FooterContent;
   scene: SceneContent;
   audio: AudioContent;
+  gallery: GalleryImage[];
   profile: AssetProfile;
   label: string;
+  galleryLabel: string;
   unavailableLabel: string;
   total: number;
 }
 
-export function SiteFooter({ footer, scene, audio, profile, label, unavailableLabel, total }: SiteFooterProps) {
+export function SiteFooter({
+  footer,
+  scene,
+  audio,
+  gallery,
+  profile,
+  label,
+  galleryLabel,
+  unavailableLabel,
+  total
+}: SiteFooterProps) {
   const style = { "--footer-accent": scene.accent } as CSSProperties;
   return (
     <footer id="credits" className="site-footer" style={style} aria-label={label}>
@@ -34,6 +53,26 @@ export function SiteFooter({ footer, scene, audio, profile, label, unavailableLa
       <p className="site-footer__wordmark" aria-label={footer.wordmark}>
         {footer.wordmark}
       </p>
+      <ul className="site-footer__gallery" aria-label={galleryLabel}>
+        {gallery.map((item, index) => (
+          <li key={item.src} data-gallery-item data-reveal>
+            <SafeImage
+              src={resolveMediaPath(item.src, profile)}
+              alt={item.alt}
+              width={item.width}
+              height={item.height}
+              srcSet={profile === "owned" ? undefined : item.srcSet}
+              sizes="(max-width: 991px) 86vw, 31vw"
+              loading="lazy"
+              decoding="async"
+            />
+            <span>
+              <b>{String(index + 1).padStart(2, "0")}</b>
+              {item.caption}
+            </span>
+          </li>
+        ))}
+      </ul>
       <HoldToPlayAudio
         audio={audio}
         profile={profile}

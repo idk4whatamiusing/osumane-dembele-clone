@@ -55,6 +55,7 @@ const frame = (chapter: string, description: string) => ({
 });
 
 const video = (chapter: string, description: string) => ({
+  mp4: `/assets/reference/video/chapter-${chapter}-mobile.mp4`,
   webm: `/assets/reference/video/chapter-${chapter}.webm`,
   poster: `/assets/reference/images/chapter-${chapter}-01.webp`,
   description,
@@ -68,19 +69,24 @@ const chapters: Chapter[] = [
     id: "chapter-01",
     navLabel: "Évreux",
     title: "Les racines",
-    kicker: "Le jeu comme langage",
+    kicker: "le jeux comme langage",
     period: "2004 — 2010",
     intro:
-      "Né à Vernon et grandi à Évreux, Ousmane Dembélé transforme les terrains de quartier en laboratoire d’audace. La vitesse, l’improvisation et le plaisir de dribler dessinent déjà une signature.",
+      "Né le 15 mai 1997 à Vernon, Ousmane Dembélé grandit à Évreux. C’est ici, sur les terrains du quartier et dans les salles de futsal, qu’il forge sa créativité et sa vitesse d’exécution.",
     body: [
-      "Entre futsal, pelouses et terrains à sept, il apprend à enjamber les lignes. Le jeu devient un langage avant de devenir un métier.",
-      "Cette liberté nourrit la confiance qui accompagnera toutes les étapes suivantes : oser, puis accélérer."
+      "Un jeune prodige qui joue avec l’audace d’un enfant et la vision d’un futur champion. À Évreux, il apprend à oser, à improviser, à créer. L’école du jeu libre. Celle qui fera toute la différence plus tard."
     ],
-    accent: "#981616",
+    accent: "#0d0d0d",
     foreground: "#fffcf5",
+    typeColor: "#981616",
+    navColor: "#ca2b2b",
+    navActiveColor: "#fffcf5",
+    clubName: "FC Évreux",
+    shirtNumber: "10",
+    overlay: { title: "Les premiers dribbles", subtitle: "du destin" },
     stats: [
-      { value: "1997", label: "année de naissance" },
-      { value: "2004", label: "premiers pas à Évreux" }
+      { value: "2004", label: "premiers pas à Évreux" },
+      { value: "2009", label: "débuts en professionnel" }
     ],
     gallery: [
       gallery("01", 1, "Jeune joueur en maillot rouge et noir, la main sur le front"),
@@ -95,26 +101,38 @@ const chapters: Chapter[] = [
       width: 892,
       height: 858
     },
+    featureVideo: {
+      mp4: "/assets/reference/video/chapter-01-jersey-data.mp4",
+      poster: "/assets/reference/images/chapter-01-01.webp",
+      description: "Séquences du premier chapitre",
+      decorative: false
+    },
     frameSequence: frame("01", "Séquence de Ballon Dor liée aux premières images"),
     mobileVideo: video("01", "Montage vidéo du premier chapitre")
   }),
   chapter({
     id: "chapter-02",
-    navLabel: "Rennes",
+    navLabel: "Stade Rennais",
     title: "La révélation",
     kicker: "L’audace en héritage",
     period: "2010 — 2016",
     intro:
-      "À Rennes, le prodige devient professionnel. Déboussolant les défenses par ses changements de direction, il associe une élégance rare à une vitesse déjà spectaculaire.",
+      "Arrivé à Rennes en 2010, Dembélé explose tout. En quelques mois, il passe des U19 à la Ligue 1, bousculant les défenses avec son dribble dévastateur et son sang-froid.",
     body: [
-      "Le jeune attaquant impose une identité : le dribble n’est pas une fin, mais le moyen de créer le décalage.",
-      "En quelques mois, il passe des Espoirs à Ligue 1 et installe son nom dans le paysage du football français."
+      "À seulement 18 ans, il est déjà la nouvelle pépite du football français. Son jeu est instinctif, imprévisible, électrique. Rennes découvre un joueur capable de faire lever un stade à chaque touche de balle."
     ],
     accent: "#610505",
     foreground: "#fffcf5",
+    typeColor: "#0d0d0d",
+    navColor: "#0d0d0d",
+    navActiveColor: "#ca2b2b",
+    clubName: "Stade Rennais",
+    shirtNumber: "23",
+    overlay: { title: "L’âge d’or", subtitle: "à Rennes" },
     stats: [
-      { value: "29", label: "matches en Rouge et Noir" },
-      { value: "12", label: "buts en Ligue 1" }
+      { value: "29", label: "matchs joués" },
+      { value: "12", label: "buts marqués" },
+      { value: "06", label: "passes décisives" }
     ],
     gallery: [
       gallery("02", 1, "Joueur en maillot rouge et noir fêtant une victoire"),
@@ -126,44 +144,54 @@ const chapters: Chapter[] = [
     featureVideo: {
       mp4: "/assets/reference/video/chapter-02-feature.mp4",
       poster: "/assets/reference/images/chapter-02-01.webp",
-      description: "Séquence vidéo du chapitre rennais",
-      transcript: "Images de match et de célébration du joueur en maillot rouge et noir.",
-      decorative: true
+      description: "Séquences de la période rennaise",
+      decorative: false
+    },
+    jersey: {
+      src: "/assets/reference/images/jersey-rennes.webp",
+      alt: "Maillot rouge et noir du chapitre rennais",
+      width: 892,
+      height: 858
     },
     frameSequence: frame("02", "Séquence de Ballon Dor liée au chapitre rennais"),
     mobileVideo: video("02", "Montage vidéo du deuxième chapitre")
   }),
   chapter({
     id: "chapter-03",
-    navLabel: "Dortmund",
+    navLabel: "Borussia Dortmund",
     title: "L’ascension",
     kicker: "L’appel du grand jeu",
     period: "2016 — 2017",
     intro:
-      "La Bundesliga accélère le récit. À Dortmund, Dembélé joue vite, attaque les espaces et impresse immédiatement une Europe attentive à ses gestes.",
+      "En 2016, il traverse la frontière pour rejoindre Dortmund. Sous le maillot jaune et noir, il explose les compteurs : buts, passes décisives, gestes fous. En Allemagne, il devient une menace constante, une arme créative redoutée sur tout le continent.",
     body: [
-      "Il découvre un football plus rapide, plus physique et plus exigeant. Ses statistiques deviennent rapidement remarquables.",
-      "Un premier titre majeur et une nouvelle réputation : celle d’un joueur capable de déstabiliser un match entier."
+      "À seulement 19 ans, il s’impose dans un club mythique et s’offre son premier titre majeur. Le prodige français n’est plus une promesse, il est une réalité."
     ],
     accent: "#ffd400",
-    foreground: "#0d0d0d",
+    foreground: "#fffcf5",
+    typeColor: "#0d0d0d",
+    navColor: "#89740a",
+    navActiveColor: "#141414",
+    clubName: "Borussia Dortmund",
+    shirtNumber: "17",
+    overlay: { title: "Premiers trajets", subtitle: "dans l’élite" },
     stats: [
-      { value: "42", label: "matches en Bundesliga" },
-      { value: "10", label: "buts toutes compétitions" }
+      { value: "42", label: "matchs joués" },
+      { value: "08", label: "buts marqués" },
+      { value: "18", label: "passes décisives" }
     ],
     gallery: [
-      gallery("03", 1, "Joueur en maillot jaune et noir les bras levés"),
-      gallery("03", 2, "Joueur en maillot jaune frappe le ballon"),
-      gallery("03", 3, "Joueur en maillot jaune reçoit un trophée"),
-      gallery("03", 4, "Joueur en maillot jaune avec une grande coupe")
+      gallery("03", 1, "Joueur en maillot jaune et noir"),
+      gallery("03", 2, "Joueur en maillot jaune et noir levant les bras"),
+      gallery("03", 3, "Portrait du joueur en tenue de match"),
+      gallery("03", 4, "Joueur sur le terrain en maillot jaune et noir")
     ],
     featureMedia: image("chapter-03-01", "Le joueur en maillot jaune et noir"),
     featureVideo: {
       mp4: "/assets/reference/video/chapter-03-feature.mp4",
       poster: "/assets/reference/images/chapter-03-01.webp",
-      description: "Séquence vidéo du chapitre allemand",
-      transcript: "Images de match, de titre et de célébration en maillot jaune et noir.",
-      decorative: true
+      description: "Séquences de la saison allemande",
+      decorative: false
     },
     jersey: {
       src: "/assets/reference/images/jersey-dortmund.webp",
@@ -176,39 +204,44 @@ const chapters: Chapter[] = [
   }),
   chapter({
     id: "chapter-04",
-    navLabel: "Barcelone",
+    navLabel: "FC Barcelone",
     title: "La transformation",
     kicker: "Le rêve catalan",
     period: "2017 — 2023",
     intro:
-      "Le FC Barcelone ouvre un nouveau chapitre. Entre blessures, progrès et moments de pur génie, le joueur apprend aussi la constance.",
+      "En 2017, Ousmane Dembélé rejoint le FC Barcelone. Un rêve d’enfant, une responsabilité immense : succéder à Neymar. Entre blessures et éclairs de génie, il apprend la patience, la rigueur et la résilience.",
     body: [
-      "À Barcelone, l’individualité se confronte aux exigences du plus grand projet sportif collectif.",
-      "Chaque retour renforce la confiance. Le jeu devient plus complet, plus patient et toujours plus spontané."
+      "Au contact de Messi, il affine sa lecture du jeu. À Barcelone, il comprend qu’être un artiste, c’est aussi savoir durer."
     ],
     accent: "#05192e",
-    foreground: "#c1b28b",
+    foreground: "#fffcf5",
+    typeColor: "#591d20",
+    navColor: "#b21a27",
+    navActiveColor: "#c69653",
+    clubName: "FC Barcelone",
+    shirtNumber: "11",
+    overlay: { title: "Le réveil", subtitle: "du Camp Nou" },
     stats: [
-      { value: "185", label: "matches sous le maillot blaugrana" },
-      { value: "40", label: "buts toutes compétitions" }
+      { value: "185", label: "matchs joués" },
+      { value: "40", label: "buts marqués" },
+      { value: "42", label: "passes décisives" }
     ],
     gallery: [
-      gallery("04", 1, "Joueur en maillot bleu et rouge après une action"),
-      gallery("04", 2, "Joueur en maillot bleu et rouge en plein saut"),
-      gallery("04", 3, "Joueur en maillot bleu et rouge célébrant"),
-      gallery("04", 4, "Joueur en maillot bleu et rouge sous les projecteurs")
+      gallery("04", 1, "Joueur en maillot du FC Barcelone"),
+      gallery("04", 2, "Joueur en maillot du FC Barcelone levant les bras"),
+      gallery("04", 3, "Portrait du joueur en tenue de match"),
+      gallery("04", 4, "Joueur sur le terrain en maillot catalan")
     ],
-    featureMedia: image("chapter-04-01", "Le joueur en maillot bleu et rouge"),
+    featureMedia: image("chapter-04-01", "Le joueur en maillot du FC Barcelone"),
     featureVideo: {
       mp4: "/assets/reference/video/chapter-04-feature.mp4",
       poster: "/assets/reference/images/chapter-04-01.webp",
-      description: "Séquence vidéo du chapitre catalan",
-      transcript: "Images de match et de célébration du joueur en maillot bleu et rouge.",
-      decorative: true
+      description: "Séquences de la période catalane",
+      decorative: false
     },
     jersey: {
       src: "/assets/reference/images/jersey-barca.webp",
-      alt: "Maillot bleu et rouge du chapitre catalan",
+      alt: "Maillot du FC Barcelone du chapitre catalan",
       width: 716,
       height: 623
     },
@@ -217,39 +250,44 @@ const chapters: Chapter[] = [
   }),
   chapter({
     id: "chapter-05",
-    navLabel: "Paris",
+    navLabel: "Paris Saint Germain",
     title: "Dans la légende",
     kicker: "Briller chez soi",
-    period: "2023 — aujourd’hui",
+    period: "2023 — 2026",
     intro:
-      "Le retour en France transforme le parcours en boucle lumineuse. À Paris, la vitesse et la vision trouvent un terrain de jeu pour durer, et un public qui reconnaît enfin la puissance d’un style.",
+      "En 2023, Dembélé revient en France, plus mature, plus fort. À Paris, il devient le symbole d’un football qui unit vitesse et vision. Le Parc retrouve le frisson des grands soirs.",
     body: [
-      "Le numéro 10 associe l’insoumission de la rue, l’exigence de la plus grande scène et une identité devenue évidente.",
-      "L’odyssée n’est plus une collection d’étapes, mais une trajectoire qui continue d’écrire."
+      "Chaque accélération est une promesse, chaque dribble une signature. Dembélé brille enfin là où tout a commencé : sur sa terre."
     ],
     accent: "#091a34",
     foreground: "#fffcf5",
+    typeColor: "#aa2221",
+    navColor: "#cb1b1a",
+    navActiveColor: "#fffcf5",
+    clubName: "Paris Saint Germain",
+    shirtNumber: "10",
+    overlay: { title: "Le parcours sans réserve", subtitle: "d’expression" },
     stats: [
-      { value: "2023", label: "retour en France" },
-      { value: "2025", label: "Ballon d’Or" }
+      { value: "102", label: "matchs joués" },
+      { value: "44", label: "buts marqués" },
+      { value: "15", label: "passes décisives" }
     ],
     gallery: [
-      gallery("05", 1, "Joueur en maillot bleu criant après une action"),
-      gallery("05", 2, "Joueur en maillot bleu, numéro 10, les bras ouverts"),
-      gallery("05", 3, "Joueur en maillot bleu tenant un trophée"),
-      gallery("05", 4, "Joueur en maillot bleu avec la Ligue des champions", "avif")
+      gallery("05", 1, "Joueur en maillot du Paris Saint Germain"),
+      gallery("05", 2, "Joueur en maillot du Paris Saint Germain levant les bras"),
+      gallery("05", 3, "Portrait du joueur en tenue de match"),
+      gallery("05", 4, "Joueur sur le terrain en maillot parisien")
     ],
-    featureMedia: image("chapter-05-01", "Le joueur en maillot bleu face au public"),
+    featureMedia: image("chapter-05-01", "Le joueur en maillot du Paris Saint Germain"),
     featureVideo: {
       mp4: "/assets/reference/video/chapter-05-feature.mp4",
       poster: "/assets/reference/images/chapter-05-01.webp",
-      description: "Séquence vidéo du chapitre parisien",
-      transcript: "Images de match et de célébration du joueur en maillot bleu.",
-      decorative: true
+      description: "Séquences du retour en France",
+      decorative: false
     },
     jersey: {
       src: "/assets/reference/images/jersey-psg.webp",
-      alt: "Maillot bleu du chapitre parisien",
+      alt: "Maillot du Paris Saint Germain du chapitre parisien",
       width: 481,
       height: 507
     },
@@ -257,6 +295,7 @@ const chapters: Chapter[] = [
     mobileVideo: video("05", "Montage vidéo du cinquième chapitre")
   })
 ];
+
 
 const content: PersonContent = {
   slug: "ousmane-dembele",
@@ -266,7 +305,7 @@ const content: PersonContent = {
   seoDescription:
     "De la rue aux plus grandes scènes du football mondial, découvrez le parcours, la vitesse et la lumière d’Ousmane Dembélé.",
   theme: {
-    background: "#efeeec",
+    background: "#fffcf5",
     surface: "#0d0d0d",
     ink: "#0d0d0d",
     muted: "#818180"
@@ -286,10 +325,10 @@ const content: PersonContent = {
     sceneFallback: "Une composition statique reste disponible"
   },
   hero: {
-    eyebrow: "Une histoire de mouvement",
-    titleLines: ["Ne", "pour", "briller"],
+    eyebrow: "Né pour briller",
+    titleLines: ["né", "pour", "briller"],
     summary:
-      "De la rue aux plus grandes scènes du football mondial, un parcours fait d’instinct, de vitesse, de flair et de lumière.",
+      "De la rue aux plus grandes scènes du football mondial, Ousmane Dembélé n’a jamais cessé d’éblouir. Un parcours fait d’instinct, de vitesse, de flair et de lumière. Voici l’histoire d’un joueur unique, tracée entre les clubs qui ont façonné sa légende.",
     image: image(
       "hero",
       "Portrait graphique associé au parcours d’Ousmane Dembélé",
@@ -301,10 +340,10 @@ const content: PersonContent = {
   },
   intro: {
     eyebrow: "Le parcours",
-    title: "Du premier geste au plus grand stade.",
+    title: "Né pour briller",
+    titleLines: ["né", "pour", "briller"],
     paragraphs: [
-      "Ousmane Dembélé n’a jamais cessé d’éblouir. Cet hommage suit les étapes, les images et les gestes qui ont construit sa légende.",
-      "Cinq chapitres. Cinq couleurs. Une même fascination pour la liberté, la vitesse et la lumière."
+      "De la rue aux plus grandes scènes du football mondial, Ousmane Dembélé n’a jamais cessé d’éblouir. Un parcours fait d’instinct, de vitesse, de flair et de lumière. Voici l’histoire d’un joueur unique, tracée entre les clubs qui ont façonné sa légende."
     ],
     gallery: [
       {
@@ -346,7 +385,7 @@ const content: PersonContent = {
       "/assets/reference/textures/uBqwgD36UTj7gxGh2ysnx.webp",
       "/assets/reference/textures/S8oIXOXc6OAfxVg1E2za1.webp"
     ],
-    heroParticles: 3000,
+    heroParticles: 6000,
     footerParticles: 500,
     alt: "Scène 3D légère de Ballon Dor et de particules dorées",
     fallbackLabel: "Lumière et mouvement",
@@ -356,9 +395,9 @@ const content: PersonContent = {
     wordmark: "Ousmane Dembélé",
     statement: "Né pour briller.",
     credits: [
-      { name: "Ankhi", role: "Direction éditoriale" },
-      { name: "Ankhi", role: "Design & motion" },
-      { name: "Ankhi", role: "Développement" }
+      { name: "Clément Merouan", role: "Direction éditoriale" },
+      { name: "Guillaume Colombel", role: "Design & motion" },
+      { name: "Thomas Carré", role: "Développement" }
     ]
   }
 };

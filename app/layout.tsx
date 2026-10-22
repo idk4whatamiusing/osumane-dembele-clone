@@ -36,10 +36,13 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
+const bootstrap = `document.documentElement.classList.add("js");if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("motion-pending")}`;
+
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang={configuredPerson.language}>
+    <html lang={configuredPerson.language} suppressHydrationWarning>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
         <a className="skip-link" href="#content">
           {configuredPerson.labels.skip}
         </a>

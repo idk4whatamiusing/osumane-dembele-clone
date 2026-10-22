@@ -4,11 +4,13 @@ import type { AssetProfile } from "@/src/content/schema";
 import { contentForProfile } from "@/src/lib/media";
 import { ChapterNav } from "@/src/components/ChapterNav";
 import { ChapterTrack } from "@/src/components/ChapterTrack";
+import { GrainVeil } from "@/src/components/GrainVeil";
 import { Hero } from "@/src/components/Hero";
 import { Intro } from "@/src/components/Intro";
 import { MotionRoot } from "@/src/components/MotionRoot";
 import { Preloader } from "@/src/components/Preloader";
 import { SiteFooter } from "@/src/components/SiteFooter";
+import { Wordmark } from "@/src/components/Wordmark";
 
 export default function Home() {
   const sourcePerson = configuredPerson;
@@ -36,6 +38,8 @@ export default function Home() {
           navigationLabel={person.labels.navigation}
           introductionLabel={person.labels.introduction}
         />
+        <Wordmark text={person.footer.wordmark} accent={person.scene.accent} />
+        <GrainVeil />
         <main id="content">
           <Hero person={person} profile={profile} />
           <Intro
@@ -59,8 +63,10 @@ export default function Home() {
            footer={person.footer}
            scene={person.scene}
            audio={person.audio}
+           gallery={person.intro.gallery}
            profile={profile}
            label={person.labels.footer}
+           galleryLabel={person.labels.gallery}
            unavailableLabel={person.labels.audioUnavailable}
            total={person.chapters.length}
         />

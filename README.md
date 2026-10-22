@@ -99,6 +99,49 @@ NEXT_PUBLIC_MEDIA_BASE_URL=<your-public-media-base-url>
 
 `src/lib/media.ts` joins that base with local data paths. Do not hotlink the reference CDN from application content.
 
+## Motion Architecture
+
+The stylesheet ships one layout and one enhanced layout. The default layout is
+a stacked, document-flow layout that works without JavaScript, on small
+screens and with reduced motion. The `motion-enhanced` class on `<html>` opts
+into the pinned horizontal layout, and it is only added once the motion
+runtime is live, behind the preloader fade, so the reflow never happens in
+front of the reader.
+
+The site is built as a sequence of beats that mirror the reference:
+
+- the opening screen is a cream page with the golden particle sphere and the
+  gold wordmark pinned to the bottom of the viewport
+- the introduction carries the display title, whose words scatter to the
+  edges of the viewport while the section scrolls away, and a paragraph
+  revealed word by word
+- every chapter is one pinned horizontal timeline holding three scenes: the
+  club mark with the shirt number, the chapter title above the photographs,
+  and the portrait with the statistics, over which the footage of the season
+  fades in
+- the footer closes the journey on the rotating trophy
+
+`src/motion/setup.ts` owns the whole runtime:
+
+- the preloader hands over with an `ankhi:loader-ready` event
+- `motion-pending` holds the pre-animation state (added by the inline
+  bootstrap in `app/layout.tsx` before the first paint, released when the
+  runtime takes over)
+- each chapter is one pinned horizontal tween; every reveal inside that
+  chapter is attached to it with `containerAnimation`, so an element animates
+  when it slides into the viewport rather than when the section is entered
+- the pin lasts roughly twice the width of the track, which is what makes the
+  horizontal movement feel unhurried
+- the rotating jersey is painted by a frame stage inside each chapter; the
+  decoded frames live in a shared cache that keeps at most two chapters in
+  memory, so a full scroll never holds more than one chapter of bitmaps
+- the experience is reference counted (`acquireMotionExperience`), so React
+  strict mode cannot build two competing sets of scroll triggers
+
+Reveals always use `fromTo` with an explicit end state. A `gsap.from` tween
+takes its end value from the computed style, so any element that the
+stylesheet hides would animate from `0` to `0` and stay invisible.
+
 ## Accessibility and Fallbacks
 
 The server response includes French document semantics, one `h1`, a skip link, navigation, all chapter text, media descriptions, statistics, audio controls, and footer credits. JavaScript enhances these elements but does not create the core reading order.
