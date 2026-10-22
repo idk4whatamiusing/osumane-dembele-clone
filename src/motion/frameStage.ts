@@ -17,8 +17,10 @@ export interface FrameStageState {
   index: number;
   /** Opacity of the stage, 0 hides it completely. */
   opacity: number;
-  /** Vertical offset in pixels, used for the exit slide. */
+  /** Vertical offset in pixels. */
   offsetY: number;
+  /** Scale of the jersey while it passes. */
+  scale: number;
   /** Whether the stage should be painted at all. */
   active: boolean;
 }
@@ -31,6 +33,7 @@ const state: FrameStageState = {
   index: 0,
   opacity: 0,
   offsetY: 0,
+  scale: 1,
   active: false
 };
 
@@ -56,6 +59,7 @@ export function resetFrameStage(): void {
     index: 0,
     opacity: 0,
     offsetY: 0,
+    scale: 1,
     active: false
   });
 }

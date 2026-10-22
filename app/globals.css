@@ -783,6 +783,7 @@ ul {
   height: 100%;
   padding: 5.5rem var(--page-gutter) 3.5rem;
   overflow: hidden;
+  background: var(--chapter-accent, #0d0d0d);
 }
 
 /* --- Scene 1: the club mark and the shirt number ------------------------- */
@@ -1043,13 +1044,14 @@ ul {
    between the chapter background and the scenes that scroll over it. */
 .frame-stage {
   position: absolute;
-  z-index: 0;
+  z-index: 8;
   inset: 0;
   width: 100%;
   height: 100%;
   opacity: var(--frame-stage-opacity, 0);
   pointer-events: none;
-  transform: translate3d(0, var(--frame-stage-y, 0), 0);
+  transform: translate3d(0, var(--frame-stage-y, 0), 0) scale(var(--frame-stage-scale, 1));
+  transform-origin: 50% 45%;
   will-change: transform, opacity;
 }
 

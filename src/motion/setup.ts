@@ -14,12 +14,13 @@ const PIN_RATIO = 2.1;
 /** Extra travel appended to a chapter so the last scene settles. */
 const CHAPTER_OVERSCROLL = 240;
 
-// The frame stage is fully visible while the club mark and the title scroll
-// past, then it slides out of view before the portrait scene.
-const STAGE_IN_END = 0.06;
-const STAGE_OUT_START = 0.74;
-const STAGE_OUT_END = 0.96;
-const STAGE_TRAVEL = 1600;
+// The rotating jersey is a beat that passes over the chapter between the
+// club mark and the title, the way the reference site brings the fabric
+// full screen for a moment before the chapter carries on.
+const STAGE_IN_START = 0.26;
+const STAGE_IN_END = 0.33;
+const STAGE_OUT_START = 0.42;
+const STAGE_OUT_END = 0.5;
 
 /** The jersey completes a full rotation over the first half of a chapter. */
 function stageIndex(progress: number, frameCount: number): number {
@@ -28,16 +29,21 @@ function stageIndex(progress: number, frameCount: number): number {
 }
 
 function stageOpacity(progress: number): number {
-  if (progress <= STAGE_IN_END) return progress / STAGE_IN_END;
+  if (progress <= STAGE_IN_START) return 0;
+  if (progress <= STAGE_IN_END) {
+    return (progress - STAGE_IN_START) / (STAGE_IN_END - STAGE_IN_START);
+  }
   if (progress <= STAGE_OUT_START) return 1;
   if (progress >= STAGE_OUT_END) return 0;
   return 1 - (progress - STAGE_OUT_START) / (STAGE_OUT_END - STAGE_OUT_START);
 }
 
-function stageOffset(progress: number): number {
-  if (progress <= STAGE_OUT_START) return 0;
-  const span = (progress - STAGE_OUT_START) / (STAGE_OUT_END - STAGE_OUT_START);
-  return Math.min(1, span) * STAGE_TRAVEL;
+/** The jersey grows a little while it passes, the way it zooms on the reference. */
+function stageScale(progress: number): number {
+  if (progress <= STAGE_IN_START) return 1;
+  if (progress >= STAGE_OUT_END) return 1;
+  const span = Math.min(1, Math.max(0, (progress - STAGE_IN_START) / (STAGE_OUT_END - STAGE_IN_START)));
+  return 1 + span * 0.18;
 }
 
 function readSequence(shell: HTMLElement): FrameSequence | null {
@@ -240,7 +246,8 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
                 sequence,
                 index: stageIndex(self.progress, sequence.frameCount),
                 opacity: stageOpacity(self.progress),
-                offsetY: stageOffset(self.progress),
+                offsetY: 0,
+                scale: stageScale(self.progress),
                 active: stageOpacity(self.progress) > 0.001
               });
             }

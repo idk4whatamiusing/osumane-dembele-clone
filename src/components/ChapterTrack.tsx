@@ -43,7 +43,12 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
       data-chapter-period={chapter.period}
       data-frame-sequence={JSON.stringify(chapter.frameSequence)}
     >
-      <FrameStage chapterId={chapter.id} sequence={chapter.frameSequence} profile={profile} />
+      <FrameStage
+        chapterId={chapter.id}
+        sequence={chapter.frameSequence}
+        accent={chapter.accent}
+        profile={profile}
+      />
       <div className="chapter-track" data-chapter-track>
         {/* 1 — the club mark and the shirt number */}
         <div className="chapter-scene chapter-scene--mark" data-scene="mark">

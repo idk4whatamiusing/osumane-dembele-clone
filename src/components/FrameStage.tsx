@@ -15,14 +15,16 @@ import { subscribeFrameStage, type FrameStageState } from "@/src/motion/frameSta
 interface FrameStageProps {
   chapterId: string;
   sequence: FrameSequence;
+  /** Colour of the chapter, used as the field behind the jersey. */
+  accent: string;
   profile: AssetProfile;
 }
 
 /**
- * The jersey is painted wider than the viewport, the way the reference site
- * zooms into the fabric until only the cloth and the number are visible.
+ * The jersey is painted far wider than the viewport, the way the reference
+ * site zooms into the fabric until only the cloth and the number are visible.
  */
-const STAGE_SCALE = 1.45;
+const STAGE_SCALE = 2.05;
 
 const emptyState: FrameStageState = {
   chapterId: null,
@@ -30,10 +32,11 @@ const emptyState: FrameStageState = {
   index: 0,
   opacity: 0,
   offsetY: 0,
+  scale: 1,
   active: false
 };
 
-export function FrameStage({ chapterId, sequence, profile }: FrameStageProps) {
+export function FrameStage({ chapterId, sequence, accent, profile }: FrameStageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const state = useRef<FrameStageState>(emptyState);
   const drawn = useRef(-1);
@@ -113,6 +116,12 @@ export function FrameStage({ chapterId, sequence, profile }: FrameStageProps) {
       }
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
+      if (state.current.active && state.current.opacity > 0.001) {
+        // The beat covers the scene, the way the reference site replaces the
+        // illustration with the fabric of the shirt.
+        context.fillStyle = accent;
+        context.fillRect(0, 0, width, height);
+      }
 
       const current = state.current;
       const target = current.sequence;
@@ -135,6 +144,7 @@ export function FrameStage({ chapterId, sequence, profile }: FrameStageProps) {
       if (canvas) {
         canvas.style.setProperty("--frame-stage-opacity", String(next.opacity));
         canvas.style.setProperty("--frame-stage-y", `${next.offsetY}px`);
+        canvas.style.setProperty("--frame-stage-scale", String(next.scale));
         canvas.classList.toggle("is-active", next.active && next.opacity > 0.001);
       }
       if (sequenceChanged) drawn.current = -1;
@@ -148,7 +158,7 @@ export function FrameStage({ chapterId, sequence, profile }: FrameStageProps) {
       controller.abort();
       unsub();
     };
-  }, [chapterId, profile]);
+  }, [accent, chapterId, profile]);
 
   return (
     <canvas
