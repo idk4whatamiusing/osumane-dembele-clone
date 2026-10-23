@@ -235,6 +235,12 @@ ul {
   transform: rotate(-3deg);
 }
 
+.preloader__sig-svg {
+  width: min(80vw, 900px);
+  height: auto;
+  color: #c69653;
+}
+
 .preloader__sig-line {
   clip-path: inset(0 100% 0 0);
   animation: sig-draw 1.6s cubic-bezier(0.55, 0, 0.35, 1) 0.25s forwards;
