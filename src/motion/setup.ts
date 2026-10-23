@@ -347,10 +347,11 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
         if (element.getClientRects().length === 0) return;
         // Split text is animated through its own parts.
         if (element.hasAttribute("data-split")) return;
+        const delay = parseFloat(element.getAttribute("delay") ?? "0") || 0;
         gsap.fromTo(
           element,
           { y: 46, autoAlpha: 0 },
-          { y: 0, autoAlpha: 1, duration: 0.9, ease: "power3.out", scrollTrigger: triggerFor(element) }
+          { y: 0, autoAlpha: 1, duration: 0.9, delay, ease: "power3.out", scrollTrigger: triggerFor(element) }
         );
       });
 
@@ -374,6 +375,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
               autoAlpha: 1,
               duration: 1.3,
               stagger: 0.05,
+              delay: parseFloat(element.getAttribute("delay") ?? "0") || 0,
               ease: "power3.inOut",
               scrollTrigger
             }
@@ -386,6 +388,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
               yPercent: 0,
               duration: 1,
               stagger: 0.01,
+              delay: parseFloat(element.getAttribute("delay") ?? "0") || 0,
               ease: "expo.out",
               scrollTrigger
             }
