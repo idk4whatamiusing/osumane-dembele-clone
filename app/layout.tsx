@@ -6,9 +6,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: `${configuredPerson.name} — ${configuredPerson.hero.eyebrow}`,
   description: configuredPerson.seoDescription,
-  applicationName: "Ankhi Tribute",
-  authors: [{ name: "Ankhi" }],
-  creator: "Ankhi",
+  applicationName: "Osumane Dembele Clone",
+  authors: [{ name: "Osumane" }],
+  creator: "Osumane",
   icons: {
     icon: "/assets/core/icon.svg"
   },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     title: `${configuredPerson.name} — ${configuredPerson.hero.eyebrow}`,
     description: configuredPerson.seoDescription,
-    siteName: "Ankhi Tribute"
+    siteName: "Osumane Dembele Clone"
   },
   robots: {
     index: true,

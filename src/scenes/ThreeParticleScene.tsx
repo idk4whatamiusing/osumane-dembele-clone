@@ -343,7 +343,7 @@ export function ThreeParticleScene({
       confetti.visible = true;
       panelRing.scale.setScalar(1.08);
     };
-    window.addEventListener("ankhi:audio-complete", onAudioComplete);
+    window.addEventListener("osumane:audio-complete", onAudioComplete);
 
     const pointer = new THREE.Vector2();
     const onPointerMove = (event: PointerEvent) => {
@@ -491,7 +491,7 @@ export function ThreeParticleScene({
       renderer.domElement.removeEventListener("webglcontextlost", onContextLost);
       renderer.domElement.removeEventListener("webglcontextrestored", onContextRestored);
       window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("ankhi:audio-complete", onAudioComplete);
+      window.removeEventListener("osumane:audio-complete", onAudioComplete);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointermove", onPointerDrag);
       renderer.domElement.removeEventListener("pointerup", onPointerUp);

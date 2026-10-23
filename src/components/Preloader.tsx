@@ -56,7 +56,7 @@ export function Preloader({ name }: PreloaderProps) {
       finished = true;
       setReady(true);
       document.documentElement.dataset.loaderReady = "true";
-      window.dispatchEvent(new Event("ankhi:loader-ready"));
+      window.dispatchEvent(new Event("osumane:loader-ready"));
     };
     const timeout = window.setTimeout(finish, reduced.matches ? 0 : READY_DELAY);
     return () => {

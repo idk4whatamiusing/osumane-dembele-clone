@@ -74,12 +74,12 @@ function waitForLoader(): Promise<void> {
     const finish = () => {
       if (settled) return;
       settled = true;
-      window.removeEventListener("ankhi:loader-ready", finish);
+      window.removeEventListener("osumane:loader-ready", finish);
       window.clearTimeout(timeout);
       resolve();
     };
     const timeout = window.setTimeout(finish, 5000);
-    window.addEventListener("ankhi:loader-ready", finish, { once: true });
+    window.addEventListener("osumane:loader-ready", finish, { once: true });
   });
 }
 

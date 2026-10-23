@@ -54,7 +54,7 @@ export function HoldToPlayAudio({
       setProgress(progress);
       if (progress >= 1 && !completed.current) {
         completed.current = true;
-        window.dispatchEvent(new CustomEvent("ankhi:audio-complete"));
+        window.dispatchEvent(new CustomEvent("osumane:audio-complete"));
       }
       progressFrame.current = window.requestAnimationFrame(animate);
     };

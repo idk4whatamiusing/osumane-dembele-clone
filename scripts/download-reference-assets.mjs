@@ -123,7 +123,7 @@ async function fetchAsset(asset) {
       signal: AbortSignal.timeout(45_000),
       headers: {
         Accept: "*/*",
-        "User-Agent": "AnkhiReferenceAssetStager/1.0"
+        "User-Agent": "OsumaneReferenceAssetStager/1.0"
       }
     });
     const location = response.headers.get("location");

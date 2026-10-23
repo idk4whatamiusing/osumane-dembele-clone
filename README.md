@@ -123,7 +123,7 @@ The site is built as a sequence of beats that mirror the reference:
 
 `src/motion/setup.ts` owns the whole runtime:
 
-- the preloader hands over with an `ankhi:loader-ready` event
+- the preloader hands over with an `osumane:loader-ready` event
 - `motion-pending` holds the pre-animation state (added by the inline
   bootstrap in `app/layout.tsx` before the first paint, released when the
   runtime takes over)
