@@ -372,9 +372,9 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
             {
               yPercent: 0,
               autoAlpha: 1,
-              duration: 0.7,
-              stagger: 0.03,
-              ease: "power3.out",
+              duration: 1.3,
+              stagger: 0.05,
+              ease: "power3.inOut",
               scrollTrigger
             }
           );
@@ -384,8 +384,8 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
             { yPercent: 115 },
             {
               yPercent: 0,
-              duration: 0.9,
-              stagger: 0.028,
+              duration: 1,
+              stagger: 0.01,
               ease: "expo.out",
               scrollTrigger
             }
