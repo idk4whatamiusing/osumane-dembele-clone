@@ -17,7 +17,7 @@ await stat(coreRoot);
 
 // Keep images and fonts (needed for the owned profile to show real photos);
 // strip the heavy/unused reference media (frames, video, audio, model, hdr, textures).
-const STRIP_DIRS = new Set(["frames", "video", "audio", "models", "hdr", "textures"]);
+const STRIP_DIRS = new Set(["frames", "video", "audio"]);
 async function collectStripDirectories(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const matches = [];

@@ -257,27 +257,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
 
         // The club mark is drawn on as a stroke, the way the reference site
         // brings the brush script to life, then its fill fades in.
-        const clubPath = shell.querySelector<SVGPathElement>(".chapter-scene__club-svg path");
-        if (clubPath) {
-          const length = clubPath.getTotalLength();
-          gsap.set(clubPath, {
-            strokeDasharray: length,
-            strokeDashoffset: length,
-            fillOpacity: 0
-          });
-          ScrollTrigger.create({
-            trigger: shell,
-            start: "top top",
-            end: () => `+=${Math.round(track.scrollWidth + 3000)}`,
-            scrub: 1,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              const p = Math.min(1, Math.max(0, self.progress * 5)); // draw on in first 20%
-              clubPath.style.strokeDashoffset = (length * (1 - p)) + "px";
-              clubPath.style.fillOpacity = String(Math.min(1, self.progress * 3));
-            }
-          });
-        }
+        // (Club mark DrawSVG is handled by the ClubMark component itself.)
 
         // The footage of the season fades in over the portrait, the way the
         // reference site replaces the illustration with the match scenes. The
