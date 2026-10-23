@@ -1236,6 +1236,17 @@ ul {
   text-transform: uppercase;
 }
 
+.site-footer__signature {
+  position: absolute;
+  z-index: 1;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(80vw, 900px);
+  height: auto;
+  color: var(--footer-accent, var(--page-accent, #c1b28b));
+}
+
 .site-footer__wordmark {
   position: absolute;
   z-index: 1;

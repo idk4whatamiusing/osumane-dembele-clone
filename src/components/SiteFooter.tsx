@@ -10,6 +10,7 @@ import { resolveMediaPath } from "@/src/lib/media";
 import { SceneEnhancement } from "./SceneEnhancement";
 import { HoldToPlayAudio } from "./HoldToPlayAudio";
 import { SafeImage } from "./SafeImage";
+import { FooterSignature } from "./FooterSignature";
 
 interface SiteFooterProps {
   footer: FooterContent;
@@ -50,6 +51,7 @@ export function SiteFooter({
         <span>{footer.statement}</span>
         <span>{String(total).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
       </div>
+      <FooterSignature className="site-footer__signature" />
       <p className="site-footer__wordmark" aria-label={footer.wordmark}>
         {footer.wordmark}
       </p>
