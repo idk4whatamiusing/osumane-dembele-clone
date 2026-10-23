@@ -25,7 +25,11 @@ function categoryForPath(path: string): keyof typeof ownedFallbacks {
 export function resolveMediaPath(path: string, profile: AssetProfile): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   if (profile === "owned" && normalized.includes("/assets/reference/")) {
-    return ownedFallbacks[categoryForPath(normalized)];
+    // Keep real reference images (they are shipped in the Worker bundle);
+    // only fall back for video, audio, frames, models, etc.
+    const category = categoryForPath(normalized);
+    if (category === "image") return normalized;
+    return ownedFallbacks[category];
   }
   const base = process.env.NEXT_PUBLIC_MEDIA_BASE_URL?.replace(/\/$/, "");
   return base ? `${base}${normalized}` : normalized;
@@ -51,10 +55,10 @@ function ownedVideo(video: VideoMedia): VideoMedia {
 function ownedChapter(chapter: Chapter): Chapter {
   return {
     ...chapter,
-    gallery: chapter.gallery.map(ownedImage),
-    featureMedia: ownedImage(chapter.featureMedia),
+    gallery: chapter.gallery,
+    featureMedia: chapter.featureMedia,
     featureVideo: chapter.featureVideo ? ownedVideo(chapter.featureVideo) : undefined,
-    jersey: chapter.jersey ? ownedImage(chapter.jersey) : undefined,
+    jersey: chapter.jersey,
     frameSequence: {
       ...chapter.frameSequence,
       basePath: "",
@@ -70,11 +74,11 @@ export function contentForProfile(person: PersonContent, profile: AssetProfile):
     ...person,
     hero: {
       ...person.hero,
-      image: ownedImage(person.hero.image)
+      image: person.hero.image
     },
     intro: {
       ...person.intro,
-      gallery: person.intro.gallery.map(ownedImage)
+      gallery: person.intro.gallery
     },
     chapters: person.chapters.map(ownedChapter),
     audio: {

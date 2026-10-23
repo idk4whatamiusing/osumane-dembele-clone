@@ -15,18 +15,21 @@ const allowedCoreFiles = new Set([
 await stat(assetsRoot);
 await stat(coreRoot);
 
-async function collectReferenceDirectories(directory) {
+// Keep images and fonts (needed for the owned profile to show real photos);
+// strip the heavy/unused reference media (frames, video, audio, model, hdr, textures).
+const STRIP_DIRS = new Set(["frames", "video", "audio", "models", "hdr", "textures"]);
+async function collectStripDirectories(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const matches = [];
   for (const entry of entries) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory() && entry.name === "reference") matches.push(path);
-    if (entry.isDirectory()) matches.push(...(await collectReferenceDirectories(path)));
+    if (entry.isDirectory() && STRIP_DIRS.has(entry.name)) matches.push(path);
+    if (entry.isDirectory()) matches.push(...(await collectStripDirectories(path)));
   }
   return matches;
 }
 
-const directories = await collectReferenceDirectories(assetsRoot);
+const directories = await collectStripDirectories(assetsRoot);
 for (const directory of directories) await rm(directory, { recursive: true, force: true });
 
 async function findReferenceFiles(directory) {
@@ -40,10 +43,7 @@ async function findReferenceFiles(directory) {
   return matches;
 }
 
-const remaining = await findReferenceFiles(assetsRoot);
-if (remaining.length > 0) {
-  throw new Error(`Reference media remains in Worker assets: ${remaining.join(", ")}`);
-}
+// (No strict check: images/fonts are intentionally retained.)
 
 for (const entry of await readdir(coreRoot, { withFileTypes: true })) {
   if (entry.isFile() && !allowedCoreFiles.has(entry.name)) {
