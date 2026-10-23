@@ -4,6 +4,7 @@ import { resolveMediaPath } from "@/src/lib/media";
 import { ChapterMedia } from "./ChapterMedia";
 import { FrameStage } from "./FrameStage";
 import { SafeImage } from "./SafeImage";
+import { ClubMark } from "./ClubMark";
 
 interface ChapterTrackProps {
   chapter: Chapter;
@@ -59,11 +60,13 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
           </p>
           <h2
             id={`${chapter.id}-title`}
-            className="chapter-scene__club"
-            data-reveal
-            data-split="chars"
+            className="chapter-scene__club chapter-scene__club--mark"
           >
-            {chapter.clubName}
+            <ClubMark
+              slug={["evreux", "rennes", "dortmund", "barca", "psg"][index] ?? "evreux"}
+              className="chapter-scene__club-svg"
+            />
+            <span className="sr-only">{chapter.clubName}</span>
           </h2>
         </div>
 

@@ -222,7 +222,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
           scrollTrigger: {
             trigger: shell,
             start: "top top",
-            end: () => `+=${Math.round(distance() * PIN_RATIO)}`,
+            end: () => `+=${Math.round(track.scrollWidth + 3000)}`,
             pin: true,
             scrub: 0.8,
             anticipatePin: 1,
@@ -254,6 +254,31 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
           }
         });
         trackTweens.set(track, tween);
+
+        // The club mark is drawn on as a stroke, the way the reference site
+        // brings the brush script to life, then its fill fades in.
+        const clubPath = shell.querySelector<SVGPathElement>(".chapter-scene__club-svg path");
+        if (clubPath) {
+          const length = clubPath.getTotalLength();
+          gsap.set(clubPath, {
+            strokeDasharray: length,
+            strokeDashoffset: length,
+            fillOpacity: 0
+          });
+          gsap.to(clubPath, {
+            strokeDashoffset: 0,
+            fillOpacity: 1,
+            duration: 1,
+            ease: "power2.inOut",
+            scrollTrigger: {
+              trigger: shell,
+              start: "top top",
+              end: () => `+=${Math.round(track.scrollWidth + 3000)}`,
+              scrub: 1,
+              invalidateOnRefresh: true
+            }
+          });
+        }
 
         // The footage of the season fades in over the portrait, the way the
         // reference site replaces the illustration with the match scenes. The
@@ -305,7 +330,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
           return {
             trigger: element,
             containerAnimation: tween,
-            start: "left 88%",
+            start: "left+=9% left",
             once: true
           };
         }
