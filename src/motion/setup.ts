@@ -265,17 +265,16 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
             strokeDashoffset: length,
             fillOpacity: 0
           });
-          gsap.to(clubPath, {
-            strokeDashoffset: 0,
-            fillOpacity: 1,
-            duration: 1,
-            ease: "power2.inOut",
-            scrollTrigger: {
-              trigger: shell,
-              start: "top top",
-              end: () => `+=${Math.round(track.scrollWidth + 3000)}`,
-              scrub: 1,
-              invalidateOnRefresh: true
+          ScrollTrigger.create({
+            trigger: shell,
+            start: "top top",
+            end: () => `+=${Math.round(track.scrollWidth + 3000)}`,
+            scrub: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const p = Math.min(1, Math.max(0, self.progress * 5)); // draw on in first 20%
+              clubPath.style.strokeDashoffset = (length * (1 - p)) + "px";
+              clubPath.style.fillOpacity = String(Math.min(1, self.progress * 3));
             }
           });
         }
