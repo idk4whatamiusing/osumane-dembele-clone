@@ -189,12 +189,12 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
           const from = word.getBoundingClientRect().left;
           gsap.to(word, {
             x: target - from,
-            ease: "none",
+            duration: 1.2,
+            ease: "power4.inOut",
             scrollTrigger: {
               trigger: intro,
-              start: () => introTop() - (window.innerHeight - 300),
-              end: () => introTop() + 100,
-              scrub: 0.5,
+              start: "top center",
+              toggleActions: "play none none reverse",
               invalidateOnRefresh: true
             }
           });
