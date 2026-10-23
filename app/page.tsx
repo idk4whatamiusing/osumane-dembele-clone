@@ -14,11 +14,7 @@ import { Wordmark } from "@/src/components/Wordmark";
 
 export default function Home() {
   const sourcePerson = configuredPerson;
-  const profile: AssetProfile =
-    process.env.ASSET_PROFILE === "owned" ||
-    (process.env.ASSET_PROFILE !== "reference" && process.env.NODE_ENV === "production")
-      ? "owned"
-      : "reference";
+  const profile: AssetProfile = "reference";
   const person = contentForProfile(sourcePerson, profile);
   const style = {
     "--page-bg": person.theme.background,
