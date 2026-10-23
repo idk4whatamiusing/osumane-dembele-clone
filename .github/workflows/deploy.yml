@@ -1,0 +1,82 @@
+name: deploy
+
+# Build, verify, and deploy the tribute site to Cloudflare Workers.
+# Deploys are skipped (not failed) when no API token is configured.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate assets
+        run: npm run assets:validate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build (Next.js)
+        run: npm run build
+
+      - name: Build (Cloudflare Worker)
+        run: npm run build:worker
+
+      - name: Configure Cloudflare credentials
+        id: creds
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || 'a3e11fe1b443619336af948c81b66375' }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice title=Deploy skipped::No CLOUDFLARE_API_TOKEN secret configured."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::add-mask::$TOKEN"
+          if curl -sf -H "Authorization: Bearer $TOKEN" \
+               "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/tokens/verify" > /dev/null; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error title=Invalid token::CLOUDFLARE_API_TOKEN was rejected."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to Cloudflare Workers
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.creds.outputs.ready }}" = "true" ]; then
+            echo "### Deployed to Cloudflare Workers ✅" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Build + tests passed. Deploy skipped — no valid API token." >> "$GITHUB_STEP_SUMMARY"
+          fi
