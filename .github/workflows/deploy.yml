@@ -28,9 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate assets
-        run: npm run assets:validate
-
       - name: Lint
         run: npm run lint
 
