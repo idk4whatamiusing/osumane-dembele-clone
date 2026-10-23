@@ -1,4 +1,4 @@
-# Ankhi Tribute
+# Osumane Dembele Clone
 
 High-fidelity, data-driven tribute site built with Next.js App Router, TypeScript, GSAP, Lenis, and dynamically loaded Three.js. The temporary content module is an Ousmane Dembélé reference; all reusable components consume generic person and chapter data.
 
@@ -170,11 +170,18 @@ Preview locally:
 npm run preview:worker
 ```
 
-Deployment is intentionally available but was not run during implementation:
+Deployment:
 
 ```bash
 npm run deploy:worker
 ```
+
+Live deployment: https://osumane-dembele-clone.dsjzcjmsh6.workers.dev
+
+CI/CD is configured via `.github/workflows/deploy.yml` — pushes to `main`
+run lint, typecheck, tests, builds, and deploy to Cloudflare Workers
+automatically when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets
+are set.
 
 `wrangler.jsonc` uses `.open-next/worker.js`, Worker static assets, `nodejs_compat`, and `global_fetch_strictly_public`. It does not define a custom domain, analytics, secrets, or provisioned R2 resources. Add environment secrets locally through `.dev.vars` or through Cloudflare environment settings without committing them.
 
