@@ -33,7 +33,8 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
   } as CSSProperties;
 
   const strip = chapter.gallery.slice(0, 4);
-  const jerseyVideo = chapter.featureVideo ?? chapter.mobileVideo;
+  const desktopJerseyVideo = chapter.featureVideo;
+  const mobileJerseyVideo = chapter.mobileVideo;
   const filmVideo = chapter.filmVideo;
   const jersey = chapter.jersey ?? chapter.featureMedia;
   const markSlug =
@@ -64,20 +65,50 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
               loading="lazy"
               decoding="async"
             />
+            {desktopJerseyVideo ? (
+              <video
+                className="chapter-jersey__video chapter-jersey__video--desktop"
+                muted
+                loop
+                playsInline
+                autoPlay
+                preload="auto"
+                aria-hidden="true"
+              >
+                {desktopJerseyVideo.webm ? (
+                  <source
+                    src={resolveMediaPath(desktopJerseyVideo.webm, profile)}
+                    type="video/webm"
+                  />
+                ) : null}
+                {desktopJerseyVideo.mp4 ? (
+                  <source
+                    src={resolveMediaPath(desktopJerseyVideo.mp4, profile)}
+                    type="video/mp4"
+                  />
+                ) : null}
+              </video>
+            ) : null}
             <video
-              className="chapter-jersey__video"
+              className="chapter-jersey__video chapter-jersey__video--mobile"
               muted
               loop
               playsInline
               autoPlay
-              preload="auto"
+              preload="metadata"
               aria-hidden="true"
             >
-              {jerseyVideo.webm ? (
-                <source src={resolveMediaPath(jerseyVideo.webm, profile)} type="video/webm" />
+              {mobileJerseyVideo.webm ? (
+                <source
+                  src={resolveMediaPath(mobileJerseyVideo.webm, profile)}
+                  type="video/webm"
+                />
               ) : null}
-              {jerseyVideo.mp4 ? (
-                <source src={resolveMediaPath(jerseyVideo.mp4, profile)} type="video/mp4" />
+              {mobileJerseyVideo.mp4 ? (
+                <source
+                  src={resolveMediaPath(mobileJerseyVideo.mp4, profile)}
+                  type="video/mp4"
+                />
               ) : null}
             </video>
           </div>
@@ -104,7 +135,7 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
 
         {/* 2 — the chapter title behind the photographs */}
         <article className="chapter-panel chapter-panel--gallery" data-panel="gallery">
-          <h3 className="chapter-gallery__title" data-split="chars">
+          <h3 className="chapter-gallery__title">
             {chapter.title}
           </h3>
           <ul

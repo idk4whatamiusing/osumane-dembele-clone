@@ -59,22 +59,14 @@ export function SceneEnhancement({
   }, [variant]);
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
-    const update = () => {
-      const supported = !reduced.matches && Boolean(context);
-      setSceneSupported(supported);
-      if (!supported) {
-        signalHeroReady();
-        if (reduced.matches) setEnhanced(false);
-      }
-    };
-    update();
+    const supported = Boolean(context);
+    if (!supported) signalHeroReady();
     // Release the probe context immediately so it cannot starve the real renderer.
     context?.getExtension("WEBGL_lose_context")?.loseContext();
-    reduced.addEventListener("change", update);
-    return () => reduced.removeEventListener("change", update);
+    const frame = window.requestAnimationFrame(() => setSceneSupported(supported));
+    return () => window.cancelAnimationFrame(frame);
   }, [signalHeroReady]);
 
   const handleReady = useCallback(() => {

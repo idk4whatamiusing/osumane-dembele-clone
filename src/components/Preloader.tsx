@@ -20,17 +20,6 @@ export function Preloader({ name }: PreloaderProps) {
     html.classList.add("is-loading");
     window.scrollTo(0, 0);
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      const revealReduced = window.setTimeout(() => {
-        setReady(true);
-        html.classList.remove("is-loading");
-        html.dataset.loaderReady = "true";
-        window.dispatchEvent(new Event("osumane:loader-ready"));
-      }, 0);
-      return () => window.clearTimeout(revealReduced);
-    }
-
     const paths = svg?.querySelectorAll<SVGPathElement>("path") ?? [];
     paths.forEach((path) => {
       const length = path.getTotalLength();

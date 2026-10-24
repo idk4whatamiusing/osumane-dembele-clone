@@ -52,7 +52,7 @@ npm run build:worker
 4. Change the single export in `src/content/config.ts`; both the page and metadata layout consume it.
 5. Replace local media under `public/assets/` and update only the data paths.
 
-The schema lives in `src/content/schema.ts`. Components must not contain a subject name, club name, or reference-only selector. Mobile and reduced-motion layouts are driven by CSS, not subject-specific branches.
+The schema lives in `src/content/schema.ts`. Components must not contain a subject name, club name, or reference-only selector. Mobile behavior lives in the shared motion runtime plus one CSS block; neither is subject-specific.
 
 ## Media
 
@@ -102,11 +102,11 @@ NEXT_PUBLIC_MEDIA_BASE_URL=<your-public-media-base-url>
 ## Motion Architecture
 
 The stylesheet ships one layout and one enhanced layout. The default layout is
-a stacked, document-flow layout that works without JavaScript, on small
-screens and with reduced motion. The `motion-enhanced` class on `<html>` opts
-into the pinned horizontal layout, and it is only added once the motion
-runtime is live, behind the preloader fade, so the reflow never happens in
-front of the reader.
+a stacked, document-flow layout that works without JavaScript. The
+`motion-enhanced` class on `<html>` opts into the pinned horizontal layout on
+every screen size, including touch and reduced-motion sessions. It is added
+only once the motion runtime is live, behind the preloader fade, so the
+reflow never happens in front of the reader.
 
 The site is built as a sequence of beats that mirror the reference:
 
@@ -132,9 +132,10 @@ The site is built as a sequence of beats that mirror the reference:
   when it slides into the viewport rather than when the section is entered
 - the pin lasts roughly twice the width of the track, which is what makes the
   horizontal movement feel unhurried
-- the rotating jersey is painted by a frame stage inside each chapter; the
-  decoded frames live in a shared cache that keeps at most two chapters in
-  memory, so a full scroll never holds more than one chapter of bitmaps
+- the rotating jersey is painted by one global frame stage on desktop and by
+  the jersey footage on touch screens; decoded frames live in a shared cache
+  that keeps at most two chapters in memory, so a full scroll never holds more
+  than one chapter of bitmaps
 - the experience is reference counted (`acquireMotionExperience`), so React
   strict mode cannot build two competing sets of scroll triggers
 
@@ -148,9 +149,8 @@ The server response includes French document semantics, one `h1`, a skip link, n
 
 The experience provides:
 
-- native mobile scrolling and block-level chapter layouts
-- no horizontal pinning on small screens
-- no GSAP pinning, Lenis, WebGL, autoplay, or smooth scrolling with reduced motion
+- the same pinned narrative on desktop, tablet, phone, and reduced-motion sessions
+- native touch scrolling, with decorative WebGL scenes kept pass-through
 - poster and core-image fallbacks for failed media
 - a non-WebGL hero and footer composition
 - keyboard and pointer support for hold-to-play audio

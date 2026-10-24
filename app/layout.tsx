@@ -36,7 +36,7 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-const bootstrap = `document.documentElement.classList.add("js");if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("motion-pending")}`;
+const bootstrap = `document.documentElement.classList.add("js","motion-pending")`;
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (

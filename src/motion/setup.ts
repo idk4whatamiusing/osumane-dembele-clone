@@ -3,7 +3,7 @@ import { releaseAllFrames } from "@/src/motion/frameCache";
 import { publishFrameStage } from "@/src/motion/frameStage";
 import { restoreSplit, splitElement } from "@/src/motion/split";
 
-const DESKTOP_MOTION_QUERY = "(min-width: 992px) and (prefers-reduced-motion: no-preference)";
+const MOTION_QUERY = "(min-width: 0px)";
 
 /** The reference site always appends three thousand pixels to a chapter. */
 const CHAPTER_OVERSCROLL = 3000;
@@ -49,9 +49,7 @@ function waitForLoader(): Promise<void> {
 export async function createMotionExperience(root: HTMLElement | null): Promise<() => void> {
   if (!root) return () => undefined;
 
-  if (window.matchMedia(DESKTOP_MOTION_QUERY).matches) {
-    document.documentElement.classList.add("motion-pending");
-  }
+  document.documentElement.classList.add("motion-pending");
 
   await waitForLoader();
 
@@ -68,7 +66,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
   const matchMedia = gsap.matchMedia();
   const splitElements: HTMLElement[] = [];
 
-  matchMedia.add(DESKTOP_MOTION_QUERY, () => {
+  matchMedia.add(MOTION_QUERY, () => {
     const lenis = new Lenis({
       autoRaf: false,
       duration: 1.4,
@@ -204,7 +202,9 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
         const markPaths = Array.from(
           shell.querySelectorAll<SVGPathElement>(".chapter-jersey__mark-svg path")
         );
-        const jerseyVideo = shell.querySelector<HTMLVideoElement>(".chapter-jersey__video");
+        const jerseyVideo = shell.querySelector<HTMLVideoElement>(
+          ".chapter-jersey__video--desktop"
+        );
         const numbers = shell.querySelectorAll<HTMLElement>("[data-number-half]");
         const galleryPanel = shell.querySelector<HTMLElement>(".chapter-panel--gallery");
         const galleryStrip = shell.querySelector<HTMLElement>("[data-gallery-strip]");
@@ -233,7 +233,10 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
         if (jerseyVideo) gsap.set(jerseyVideo, { width: "0%" });
         if (film) {
           gsap.set(film, {
-            clipPath: "polygon(25% 36%, 70% 36%, 70% 55%, 25% 55%)"
+            clipPath:
+              window.innerWidth <= 991
+                ? "polygon(10% 35%, 90% 35%, 90% 50%, 10% 50%)"
+                : "polygon(25% 36%, 70% 36%, 70% 55%, 25% 55%)"
           });
         }
         if (storyOverlay) gsap.set(storyOverlay, { yPercent: 200 });

@@ -46,7 +46,7 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
     if (profile === "owned") return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (window.matchMedia("(max-width: 991px), (prefers-reduced-motion: reduce)").matches) {
+    if (window.matchMedia("(max-width: 991px)").matches) {
       return;
     }
 

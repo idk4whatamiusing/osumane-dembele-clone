@@ -23,7 +23,6 @@ export function CinematicMedia({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
   const poster = resolveMediaPath(media.poster ?? "/assets/core/fallback-poster.svg", profile);
   const sources = [
     media.webm
@@ -35,20 +34,8 @@ export function CinematicMedia({
   ].filter((source): source is { src: string; type: string } => Boolean(source));
 
   useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-
-  useEffect(() => {
     const video = videoRef.current;
     if (!video || failed) return;
-    if (reducedMotion) {
-      video.pause();
-      return;
-    }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -62,7 +49,7 @@ export function CinematicMedia({
     );
     observer.observe(video);
     return () => observer.disconnect();
-  }, [failed, reducedMotion]);
+  }, [failed]);
 
   const toggle = () => {
     const video = videoRef.current;

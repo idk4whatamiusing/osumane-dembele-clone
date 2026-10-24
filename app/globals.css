@@ -275,17 +275,6 @@ ul {
   animation: sig-progress 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .preloader {
-    animation: none;
-  }
-
-  .preloader__sig-line {
-    clip-path: none;
-    animation: none;
-  }
-}
-
 /* --- The grain that covers the whole site -------------------------------- */
 
 .grain-veil {
@@ -1533,13 +1522,13 @@ html:not(.js) .site-nav__track a {
     min-height: 0;
   }
 
-  .chapter-shell {
+  html:not(.motion-enhanced) .chapter-shell {
     height: auto;
     min-height: 0;
     overflow: visible;
   }
 
-  .chapter-track {
+  html:not(.motion-enhanced) .chapter-track {
     display: block;
     width: 100%;
     height: auto;
@@ -1717,26 +1706,6 @@ html:not(.js) .site-nav__track a {
 }
 
 @media (max-width: 991px) {
-  .motion-enhanced .chapter-shell {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-
-  .motion-enhanced .chapter-track {
-    display: block;
-    width: 100%;
-    height: auto;
-    transform: none !important;
-  }
-
-  .motion-enhanced .chapter-scene {
-    width: 100%;
-    min-height: auto;
-  }
-}
-
-@media (max-width: 991px) {
   .chapter-scene--mark,
   .chapter-scene--title,
   .chapter-scene--portrait {
@@ -1828,56 +1797,6 @@ html:not(.js) .site-nav__track a {
 
   .grain-veil {
     opacity: 0.28;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  .preloader {
-    display: none;
-  }
-
-  .chapter-shell {
-    height: auto;
-    overflow: visible;
-  }
-
-  .chapter-track {
-    display: block;
-    width: 100%;
-    height: auto;
-    transform: none !important;
-  }
-
-  .chapter-scene {
-    width: 100%;
-    min-height: auto;
-    padding-top: 8rem;
-    padding-bottom: 6rem;
-  }
-
-  .chapter-scene__strip {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .chapter-scene__strip li:nth-child(2n) {
-    transform: none;
-  }
-
-  .frame-stage {
-    display: none;
   }
 }
 
@@ -2461,7 +2380,7 @@ html:not(.js) .preloader {
 .motion-enhanced .chapter-story__lead,
 .motion-enhanced .chapter-story__tail {
   margin: 0;
-  font-size: 8.4375rem;
+  font-size: 4.5rem;
   line-height: 0.8;
   white-space: nowrap;
 }
@@ -2686,45 +2605,256 @@ html:not(.js) .preloader {
 
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .global-frame-stage {
+
+
+/* --- Small screens: the same pinned sequence, scaled for touch ---------- */
+
+.motion-enhanced .chapter-jersey__video--mobile {
+  display: none;
+}
+
+.motion-enhanced .chapter-jersey__media {
+  z-index: 2;
+}
+
+.motion-enhanced .chapter-jersey__mark {
+  z-index: 1;
+}
+
+@media (max-width: 991px) {
+  .motion-enhanced .chapter-shell {
+    height: calc(100svh + 2.5rem);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .motion-enhanced .chapter-track {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    transform: none;
+  }
+
+  .motion-enhanced .chapter-panel {
+    height: 100%;
+    min-height: 100%;
+  }
+
+  .motion-enhanced .chapter-panel--jersey {
+    width: 100vw;
+    min-height: 100%;
+    padding: 0;
+  }
+
+  .motion-enhanced .chapter-jersey__media {
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .motion-enhanced .chapter-jersey__still {
     display: none;
   }
 
-  .chapter-shell {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
+  .motion-enhanced .chapter-jersey__video--desktop {
+    z-index: 0;
+    display: block;
   }
 
-  .chapter-track {
+  .motion-enhanced .chapter-jersey__video--mobile {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
     display: block;
     width: 100%;
-    height: auto;
-    transform: none !important;
+    height: 100%;
+    max-height: none;
+    margin: auto;
+    object-fit: contain;
+    transform: scale(0.6);
   }
 
-  .chapter-panel {
-    width: 100% !important;
-    min-height: 0;
-    height: auto;
-    transform: none !important;
+  .motion-enhanced .chapter-jersey__mark {
+    top: 50%;
+    left: 50%;
+    width: 90vw;
+    transform: translate(-50%, -50%);
   }
 
-  .chapter-story__film {
-    position: relative;
-    inset: auto;
-    height: 50svh;
-    clip-path: none !important;
+  .motion-enhanced .chapter-jersey__numbers {
+    top: 50%;
+    gap: 1rem;
+    font-size: 49vw;
+    letter-spacing: normal;
   }
 
-  .chapter-story__overlay {
-    position: relative;
-    inset: auto;
-    transform: none !important;
+  .motion-enhanced .chapter-shell__index {
+    display: none;
   }
 
-  .intro__word-inner {
-    transform: none !important;
+  .motion-enhanced .chapter-panel--gallery {
+    width: 150vw;
+    padding: 1.125rem;
+  }
+
+  .motion-enhanced .chapter-gallery__title {
+    top: 50%;
+    left: 50%;
+    width: 82%;
+    font-size: 3.125rem;
+    line-height: 0.82;
+    text-align: center;
+    white-space: normal;
+    transform: translate(-50%, -50%);
+  }
+
+  .motion-enhanced .chapter-gallery__strip {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 5rem 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    align-content: stretch;
+    justify-content: space-between;
+    place-items: center;
+    gap: 1rem;
+  }
+
+  .motion-enhanced .chapter-gallery__strip li {
+    width: min(15rem, 100%);
+    height: 6rem;
+    aspect-ratio: auto;
+  }
+
+  .motion-enhanced .chapter-gallery__strip li > span {
+    display: none;
+  }
+
+  .motion-enhanced .chapter-panel--story {
+    width: 100vw;
+    padding: 0;
+  }
+
+  .motion-enhanced .chapter-story__film {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .motion-enhanced .chapter-story__intro {
+    inset: 0;
+    height: 100%;
+    padding: 3rem 1.125rem;
+    justify-content: space-between;
+  }
+
+  .motion-enhanced .chapter-story__heading {
+    width: fit-content;
+    max-width: 100%;
+    padding-top: 0;
+  }
+
+  .motion-enhanced .chapter-story__lead,
+  .motion-enhanced .chapter-story__tail {
+    font-size: 3.125rem;
+    line-height: 0.82;
+    white-space: normal;
+  }
+
+  .motion-enhanced .chapter-story__bottom {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.5rem;
+    text-align: right;
+  }
+
+  .motion-enhanced .chapter-story__copy {
+    width: min(16.75rem, 100%);
+    max-width: 16.75rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  .motion-enhanced .chapter-story__tail {
+    width: 100%;
+  }
+
+  .motion-enhanced .chapter-story__overlay {
+    inset: 0;
+    height: 100%;
+    padding: 1.125rem;
+  }
+
+  .motion-enhanced .chapter-story__overlay-heading {
+    top: -25%;
+    left: 0;
+    width: 100%;
+    padding: 1.125rem;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .motion-enhanced .chapter-story__overlay-title,
+  .motion-enhanced .chapter-story__overlay-subtitle {
+    font-size: 3.125rem;
+    line-height: 0.82;
+  }
+
+  .motion-enhanced .chapter-story__stats {
+    inset: 1.125rem;
+    justify-content: flex-end;
+    gap: 1.5rem;
+  }
+
+  .motion-enhanced .chapter-story__stats > div {
+    align-self: flex-start !important;
+  }
+
+  .motion-enhanced .chapter-story__stat dt {
+    display: none;
+  }
+
+  .motion-enhanced .chapter-story__stats dd {
+    font-size: 31vw;
+    line-height: 0.8;
+  }
+
+  .wordmark {
+    bottom: 0.75rem;
+  }
+
+  .wordmark p.wordmark__mini {
+    display: none;
+  }
+
+  .wordmark__hero {
+    padding: 0 0.75rem;
+    font-size: 6.7vw;
+  }
+
+  /* The hero scene is decorative on touch screens. It must never swallow the
+     swipe that starts over the sphere, or the pinned story cannot move. */
+  .scene-enhancement--hero,
+  .three-particle-scene,
+  .three-particle-scene canvas {
+    touch-action: pan-y !important;
+    pointer-events: none;
+  }
+}
+
+/* Touch laptops and landscape tablets are wider than the mobile layout, but
+   the decorative sphere still must not intercept the first swipe. */
+@media (hover: none), (pointer: coarse) {
+  .scene-enhancement--hero,
+  .three-particle-scene,
+  .three-particle-scene canvas {
+    touch-action: pan-y !important;
+    pointer-events: none;
   }
 }
