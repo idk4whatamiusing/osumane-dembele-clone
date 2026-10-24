@@ -8,68 +8,109 @@ interface PreloaderProps {
   name: string;
 }
 
-const READY_DELAY = 2600;
-
 export function Preloader({ name }: PreloaderProps) {
   const [ready, setReady] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
+    const root = rootRef.current;
     const svg = svgRef.current;
-    if (svg) {
-      const paths = svg.querySelectorAll("path");
-      paths.forEach((path) => {
-        const length = (path as SVGPathElement).getTotalLength();
-        gsap.set(path, {
-          strokeDasharray: length,
-          strokeDashoffset: length,
-          fillOpacity: 0,
-          y: "105%"
-        });
-      });
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (!reduced) {
-        gsap.to(paths, {
-          strokeDashoffset: 0,
-          fillOpacity: 1,
-          duration: 1,
-          stagger: 0.2,
-          ease: "power2.inOut",
-          delay: 0.2
-        });
-        gsap.to(paths, {
-          y: "0%",
-          duration: 0.6,
-          stagger: 0.04,
-          ease: "expo.out",
-          delay: 0.2
-        });
-      } else {
-        gsap.set(paths, { strokeDashoffset: 0, fillOpacity: 1, y: "0%" });
-      }
+    const html = document.documentElement;
+    html.classList.add("is-loading");
+    window.scrollTo(0, 0);
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      const revealReduced = window.setTimeout(() => {
+        setReady(true);
+        html.classList.remove("is-loading");
+        html.dataset.loaderReady = "true";
+        window.dispatchEvent(new Event("osumane:loader-ready"));
+      }, 0);
+      return () => window.clearTimeout(revealReduced);
     }
 
+    const paths = svg?.querySelectorAll<SVGPathElement>("path") ?? [];
+    paths.forEach((path) => {
+      const length = path.getTotalLength();
+      gsap.set(path, {
+        strokeDasharray: length,
+        strokeDashoffset: length,
+        fillOpacity: 0
+      });
+    });
+
+    // The loader is allowed to finish its signature while the hero scene
+    // warms up. The site is only revealed once both are ready.
+    let signatureDone = false;
+    let heroReady = false;
+    let startedFade = false;
     let finished = false;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
     const finish = () => {
       if (finished) return;
       finished = true;
       setReady(true);
-      document.documentElement.dataset.loaderReady = "true";
+      html.classList.remove("is-loading");
+      html.dataset.loaderReady = "true";
       window.dispatchEvent(new Event("osumane:loader-ready"));
     };
-    const timeout = window.setTimeout(finish, reduced.matches ? 0 : READY_DELAY);
-    return () => {
-      window.clearTimeout(timeout);
-      if (!finished) {
-        finished = true;
-        document.documentElement.dataset.loaderReady = "true";
+
+    const maybeReveal = () => {
+      if (!root || startedFade || !signatureDone || !heroReady) return;
+      startedFade = true;
+      gsap.to(root, {
+        opacity: 0,
+        duration: 0.2,
+        ease: "none",
+        onComplete: finish
+      });
+    };
+
+    const signature = gsap.timeline({
+      delay: 0.15,
+      onComplete: () => {
+        signatureDone = true;
+        maybeReveal();
       }
+    });
+    if (paths.length) {
+      signature.to(paths, {
+        strokeDashoffset: 0,
+        fillOpacity: 1,
+        duration: 1,
+        stagger: 0.2,
+        ease: "power2.inOut"
+      });
+    }
+    signature.to({}, { duration: 0.7 });
+
+    const onHeroReady = () => {
+      heroReady = true;
+      maybeReveal();
+    };
+    window.addEventListener("osumane:hero-ready", onHeroReady, { once: true });
+    if (html.dataset.heroReady === "true") onHeroReady();
+
+    const gateTimeout = window.setTimeout(() => {
+      heroReady = true;
+      maybeReveal();
+    }, 5000);
+    const hardTimeout = window.setTimeout(finish, 7000);
+
+    return () => {
+      signature.kill();
+      window.clearTimeout(gateTimeout);
+      window.clearTimeout(hardTimeout);
+      window.removeEventListener("osumane:hero-ready", onHeroReady);
+      html.classList.remove("is-loading");
     };
   }, []);
 
   return (
     <div
+      ref={rootRef}
       className={`preloader${ready ? " is-ready" : ""}`}
       role="status"
       aria-live="polite"

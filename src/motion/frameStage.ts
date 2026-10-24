@@ -17,7 +17,13 @@ export interface FrameStageState {
   index: number;
   /** Opacity of the stage, 0 hides it completely. */
   opacity: number;
-  /** Vertical offset in pixels. */
+  /**
+   * Vertical position of the fixed stage, in percent of its own height.
+   * The reference site starts at -50 (centred) and moves to 125 as the
+   * chapter releases the jersey.
+   */
+  yPercent: number;
+  /** Vertical offset in pixels, kept for the old per-chapter stage. */
   offsetY: number;
   /** Scale of the jersey while it passes. */
   scale: number;
@@ -32,6 +38,7 @@ const state: FrameStageState = {
   sequence: null,
   index: 0,
   opacity: 0,
+  yPercent: -50,
   offsetY: 0,
   scale: 1,
   active: false
@@ -58,6 +65,7 @@ export function resetFrameStage(): void {
     sequence: null,
     index: 0,
     opacity: 0,
+    yPercent: -50,
     offsetY: 0,
     scale: 1,
     active: false

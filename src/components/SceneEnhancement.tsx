@@ -52,32 +52,44 @@ export function SceneEnhancement({
   const [enhanced, setEnhanced] = useState(false);
   const readyRef = useRef(false);
 
+  const signalHeroReady = useCallback(() => {
+    if (variant !== "hero") return;
+    document.documentElement.dataset.heroReady = "true";
+    window.dispatchEvent(new Event("osumane:hero-ready"));
+  }, [variant]);
+
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
     const update = () => {
-      setSceneSupported(!reduced.matches && Boolean(context));
-      if (reduced.matches) setEnhanced(false);
+      const supported = !reduced.matches && Boolean(context);
+      setSceneSupported(supported);
+      if (!supported) {
+        signalHeroReady();
+        if (reduced.matches) setEnhanced(false);
+      }
     };
     update();
     // Release the probe context immediately so it cannot starve the real renderer.
     context?.getExtension("WEBGL_lose_context")?.loseContext();
     reduced.addEventListener("change", update);
     return () => reduced.removeEventListener("change", update);
-  }, []);
+  }, [signalHeroReady]);
 
   const handleReady = useCallback(() => {
     readyRef.current = true;
     setEnhanced(true);
-  }, []);
+    signalHeroReady();
+  }, [signalHeroReady]);
 
   const handleFail = useCallback((reason: string) => {
     console.warn(`[scene] WebGL scene disabled (${reason}); keeping CSS fallback.`);
     (window as unknown as { __sceneFail?: string }).__sceneFail = reason;
     setEnhanced(false);
     setSceneSupported(false);
-  }, []);
+    signalHeroReady();
+  }, [signalHeroReady]);
 
   // Watchdog: the scene mounted but never signalled its first render
   // (dynamic import stall, zero-sized container, silent renderer failure).

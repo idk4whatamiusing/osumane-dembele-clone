@@ -5,6 +5,7 @@ import { contentForProfile } from "@/src/lib/media";
 import { ChapterNav } from "@/src/components/ChapterNav";
 import { ChapterTrack } from "@/src/components/ChapterTrack";
 import { GrainVeil } from "@/src/components/GrainVeil";
+import { GlobalFrameStage } from "@/src/components/GlobalFrameStage";
 import { Hero } from "@/src/components/Hero";
 import { Intro } from "@/src/components/Intro";
 import { MotionRoot } from "@/src/components/MotionRoot";
@@ -30,12 +31,17 @@ export default function Home() {
         <Preloader name={person.name} />
         <ChapterNav
           name={person.name}
-          items={person.chapters.map(({ id, navLabel }) => ({ id, label: navLabel }))}
+          items={person.chapters.map(({ id, navLabel, navLabelShort }) => ({
+            id,
+            label: navLabel,
+            shortLabel: navLabelShort
+          }))}
           navigationLabel={person.labels.navigation}
           introductionLabel={person.labels.introduction}
         />
         <Wordmark text={person.footer.wordmark} accent={person.scene.accent} />
         <GrainVeil />
+        <GlobalFrameStage profile={profile} />
         <main id="content">
           <Hero person={person} profile={profile} />
           <Intro
@@ -66,9 +72,6 @@ export default function Home() {
            unavailableLabel={person.labels.audioUnavailable}
            total={person.chapters.length}
         />
-        <noscript>
-          <p className="noscript-note">La version statique reste entièrement lisible sans JavaScript.</p>
-        </noscript>
       </div>
     </MotionRoot>
   );

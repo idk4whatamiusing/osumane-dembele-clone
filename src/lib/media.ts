@@ -57,6 +57,7 @@ function ownedChapter(chapter: Chapter): Chapter {
     ...chapter,
     gallery: chapter.gallery,
     featureMedia: chapter.featureMedia,
+    filmVideo: chapter.filmVideo ? ownedVideo(chapter.filmVideo) : undefined,
     featureVideo: chapter.featureVideo ? ownedVideo(chapter.featureVideo) : undefined,
     jersey: chapter.jersey,
     frameSequence: {

@@ -23,6 +23,14 @@
 }
 
 @font-face {
+  font-family: Doner;
+  src: url("/assets/reference/fonts/Doner-ExtraLightText.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 200;
+}
+
+@font-face {
   font-family: Being;
   src: url("/assets/reference/fonts/Being-Black.otf") format("opentype");
   font-display: swap;
@@ -193,6 +201,7 @@ ul {
   min-height: 100vh;
   background: var(--page-bg);
   color: var(--page-ink);
+  font-family: var(--font-text);
   isolation: isolate;
 }
 
@@ -330,6 +339,27 @@ ul {
   font-size: 0.72rem;
   letter-spacing: 0.02em;
   opacity: 0;
+}
+
+/* The scroll listener cannot cross-fade the two wordmarks without JavaScript. */
+html:not(.js) .wordmark__hero {
+  display: none;
+}
+
+html:not(.js) .wordmark__mini {
+  opacity: 1;
+  transform: none;
+}
+
+/* Without the chapter colour observer the nav keeps a readable contrast on
+   both the cream hero and the dark chapter panels. */
+html:not(.js) .site-nav {
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+html:not(.js) .site-nav__track a {
+  color: inherit;
 }
 
 .site-nav {
@@ -1310,18 +1340,6 @@ ul {
   text-transform: uppercase;
 }
 
-.noscript-note {
-  position: fixed;
-  z-index: 70;
-  right: 1rem;
-  bottom: 5rem;
-  max-width: 18rem;
-  padding: 0.7rem 0.9rem;
-  background: #fff;
-  color: #111;
-  font-size: 0.72rem;
-}
-
 @keyframes grain-shift {
   0% { transform: translate3d(0, 0, 0); }
   25% { transform: translate3d(2%, -3%, 0); }
@@ -1374,7 +1392,7 @@ ul {
   .site-nav {
     height: 3.4rem;
     align-items: flex-start;
-    padding-top: 1.25rem;
+    padding: 1.25rem 0.75rem 0;
   }
 
   .site-nav__brand {
@@ -1397,6 +1415,15 @@ ul {
 
   .site-nav__track a {
     flex: 0 0 auto;
+    font-size: 0.5rem;
+  }
+
+  .site-nav__label--long {
+    display: none;
+  }
+
+  .site-nav__label--short {
+    display: inline;
   }
 
   .audio-control {
@@ -1818,8 +1845,7 @@ ul {
     transition-duration: 0.01ms !important;
   }
 
-  .preloader,
-  .scene-enhancement {
+  .preloader {
     display: none;
   }
 
@@ -1852,5 +1878,853 @@ ul {
 
   .frame-stage {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   Reference parity pass — loader, rotating jersey, three-panel chapters
+   ========================================================================== */
+
+html.is-loading,
+html.is-loading body {
+  overflow: hidden;
+}
+
+.preloader {
+  animation: none;
+  opacity: 1;
+  visibility: visible;
+  transition: none;
+}
+
+/* Without the bootstrap script the React loader can never mark itself ready.
+   Hide it so the static fallback is readable immediately. */
+html:not(.js) .preloader {
+  display: none;
+}
+
+.preloader.is-ready {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.preloader__bar {
+  display: none;
+}
+
+.site-nav {
+  padding-right: 1.125rem;
+  padding-left: 1.125rem;
+}
+
+.site-nav__track a {
+  font-size: 0.45rem;
+  font-weight: 900;
+  letter-spacing: normal;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.site-nav__label--short {
+  display: none;
+}
+
+/* --- One fixed canvas for the spinning jersey ---------------------------- */
+
+.global-frame-stage {
+  position: fixed;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+}
+
+/* --- The introduction ---------------------------------------------------- */
+
+.intro {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 13.5rem;
+  padding: 14.625rem 1.125rem 10.125rem;
+  background: #0d0d0d;
+  color: #fffcf5;
+}
+
+.intro__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 0.72rem;
+}
+
+.intro__title {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-display);
+  font-size: clamp(3.125rem, 5vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 0.8;
+  text-transform: uppercase;
+}
+
+.intro__group {
+  display: flex;
+  gap: 1rem;
+}
+
+.intro__word {
+  display: inline-block;
+  overflow: hidden;
+  padding-top: 0;
+}
+
+.intro__word-inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+.intro__copy {
+  width: 35vw;
+  max-width: none;
+  margin-top: 0;
+  font-size: 1.6875rem;
+  font-weight: 200;
+  line-height: 1.4;
+  text-transform: none;
+}
+
+.intro__copy p {
+  margin: 0;
+}
+
+/* --- Chapters: the static document flow ---------------------------------- */
+
+.chapter-shell {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: auto;
+  min-height: 100svh;
+  overflow: visible;
+  background: var(--chapter-accent, #0d0d0d);
+  color: var(--chapter-foreground, #fffcf5);
+}
+
+.chapter-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chapter-panel {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--chapter-accent, #0d0d0d);
+}
+
+.chapter-panel--jersey {
+  display: grid;
+  place-items: center;
+  padding: 6rem var(--page-gutter) 4rem;
+}
+
+.chapter-jersey__media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.chapter-jersey__still,
+.chapter-jersey__video {
+  width: min(70vw, 42rem);
+  height: auto;
+  max-height: 72vh;
+  object-fit: contain;
+}
+
+.chapter-jersey__video {
+  display: none;
+}
+
+.chapter-jersey__mark {
+  position: relative;
+  z-index: 3;
+  width: min(78vw, 70rem);
+  margin: 0;
+  color: var(--chapter-type, #981616);
+  transform: rotate(-2deg);
+}
+
+.chapter-jersey__mark-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chapter-jersey__numbers {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  margin: 0;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 5vw, 6.25rem);
+  color: var(--chapter-foreground, #fffcf5);
+  font-family: var(--font-display);
+  font-size: clamp(10rem, 22vw, 22rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.chapter-jersey__numbers span {
+  display: block;
+}
+
+.chapter-shell__index {
+  z-index: 5;
+}
+
+.chapter-panel--gallery {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+  padding: 7rem var(--page-gutter) 5rem;
+}
+
+.chapter-gallery__title {
+  margin: 0;
+  color: var(--chapter-type, #981616);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 9vw, 8.4375rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 0.82;
+  text-transform: uppercase;
+}
+
+.chapter-gallery__strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter-gallery__strip li {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1470 / 552;
+  background: #060606;
+}
+
+.chapter-gallery__strip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chapter-gallery__strip li > span {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.55rem;
+  left: 0.55rem;
+  display: flex;
+  gap: 0.55rem;
+  padding: 0.45rem 0.55rem;
+  background: rgba(8, 8, 8, 0.72);
+  color: #fffcf5;
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+
+.chapter-gallery__strip b {
+  color: var(--chapter-type, #981616);
+}
+
+.chapter-story {
+  background: var(--chapter-accent, #0d0d0d);
+}
+
+.chapter-story__film {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 50svh;
+  overflow: hidden;
+  background: #060606;
+}
+
+.chapter-story__poster,
+.chapter-story__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chapter-story__video {
+  z-index: 1;
+}
+
+.chapter-story__wash {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 8, 8, 0.28), transparent 45%, rgba(8, 8, 8, 0.72)),
+    color-mix(in srgb, var(--chapter-type, #981616) 42%, transparent);
+  mix-blend-mode: multiply;
+}
+
+.chapter-story__intro {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  padding: 4rem var(--page-gutter) 5rem;
+}
+
+.chapter-story__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chapter-display {
+  margin: 0;
+  color: var(--chapter-type, #981616);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 9vw, 8.4375rem);
+  font-weight: 900;
+  letter-spacing: normal;
+  line-height: 0.82;
+  text-transform: uppercase;
+}
+
+.chapter-story__copy {
+  width: min(23rem, 100%);
+  margin-left: auto;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--chapter-foreground, #fffcf5) 88%, transparent);
+}
+
+.chapter-story__copy p + p {
+  margin-top: 0.9em;
+}
+
+.chapter-story__overlay {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4rem;
+  padding: 4rem var(--page-gutter) 3rem;
+  background: var(--chapter-accent, #0d0d0d);
+}
+
+.chapter-story__overlay-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.chapter-story__overlay-title,
+.chapter-story__overlay-subtitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-weight: 900;
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.chapter-story__overlay-title {
+  color: var(--chapter-foreground, #fffcf5);
+}
+
+.chapter-story__overlay-subtitle {
+  color: var(--chapter-type, #981616);
+}
+
+.chapter-story__stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.chapter-story__stat {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.chapter-story__stat dt {
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  opacity: 0.68;
+  text-transform: uppercase;
+}
+
+.chapter-story__stat dd {
+  margin: 0;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 12vw, 18.75rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 0.75;
+  -webkit-text-stroke: 2px var(--chapter-foreground, #fffcf5);
+}
+
+/* --- Chapters: the pinned horizontal sequence ---------------------------- */
+
+.motion-enhanced .chapter-shell {
+  height: calc(100svh + 2.25rem);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.motion-enhanced .chapter-track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  align-items: stretch;
+  will-change: transform;
+}
+
+.motion-enhanced .chapter-panel {
+  height: 100%;
+  min-height: 100%;
+  flex: 0 0 auto;
+}
+
+.motion-enhanced .chapter-panel--jersey {
+  width: 100vw;
+  padding: 1.125rem;
+}
+
+.motion-enhanced .chapter-jersey__media {
+  z-index: 0;
+  opacity: 1;
+}
+
+.motion-enhanced .chapter-jersey__still {
+  display: none;
+}
+
+.motion-enhanced .chapter-jersey__video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 0;
+  height: 100%;
+  max-height: none;
+  margin: auto;
+  object-fit: cover;
+}
+
+.motion-enhanced .chapter-jersey__mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(70vw, 70rem);
+  mix-blend-mode: difference;
+  transform: translate(-50%, -50%);
+}
+
+.motion-enhanced [data-club="rennes"] .chapter-jersey__mark,
+.motion-enhanced [data-club="barca"] .chapter-jersey__mark,
+.motion-enhanced [data-club="psg"] .chapter-jersey__mark {
+  mix-blend-mode: normal;
+}
+
+.motion-enhanced .chapter-jersey__numbers {
+  gap: 5.625rem;
+  font-size: 19.8rem;
+  letter-spacing: normal;
+}
+
+.motion-enhanced .chapter-panel--gallery {
+  display: block;
+  width: 150vw;
+  padding: 1.125rem 1.125rem 1.125rem 4.5rem;
+}
+
+.motion-enhanced .chapter-gallery__title {
+  position: absolute;
+  z-index: 1;
+  top: calc(50% + 0.625rem);
+  left: 50%;
+  width: auto;
+  font-size: 8.4375rem;
+  letter-spacing: normal;
+  line-height: 0.8;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+}
+
+.motion-enhanced .chapter-gallery__strip {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 80%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+  justify-content: space-between;
+  place-items: center;
+  gap: 1rem;
+}
+
+.motion-enhanced .chapter-gallery__strip li {
+  width: 27rem;
+  height: 10.35rem;
+  aspect-ratio: auto;
+}
+
+.motion-enhanced .chapter-gallery__strip li > span {
+  display: none;
+}
+
+.motion-enhanced .chapter-panel--story {
+  width: 100vw;
+  padding: 1.125rem;
+}
+
+.motion-enhanced .chapter-story__film {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.motion-enhanced .chapter-story__intro {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  height: 100%;
+  padding: 2.7rem 1.125rem;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.motion-enhanced .chapter-story__heading {
+  width: fit-content;
+  max-width: 64%;
+  align-self: flex-start;
+  padding-top: 0.875rem;
+  overflow: hidden;
+}
+
+.motion-enhanced .chapter-story__lead,
+.motion-enhanced .chapter-story__tail {
+  margin: 0;
+  font-size: 8.4375rem;
+  line-height: 0.8;
+  white-space: nowrap;
+}
+
+.motion-enhanced .chapter-story__lead {
+  display: inline-flex;
+}
+
+.motion-enhanced .chapter-story__bottom {
+  display: flex;
+  width: auto;
+  flex-direction: column;
+  align-items: flex-end;
+  align-self: flex-end;
+  gap: 2.6rem;
+  text-align: right;
+}
+
+.motion-enhanced .chapter-story__copy {
+  width: fit-content;
+  max-width: 16.6875rem;
+  margin-left: auto;
+  align-self: flex-end;
+  color: #fffcf5;
+  font-size: 0.675rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.motion-enhanced .chapter-story__lead,
+.motion-enhanced .chapter-story__tail {
+  /* The reference splits these headings into inline-block letters, which
+     disables kerning. Match that so the lines keep the same width. */
+  font-kerning: none;
+}
+
+.motion-enhanced .chapter-story__tail {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.motion-enhanced .chapter-story__overlay {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  min-height: 0;
+  height: 100svh;
+  padding: 1.125rem;
+  background: transparent;
+  will-change: transform;
+}
+
+.motion-enhanced .chapter-story__overlay-heading {
+  position: absolute;
+  top: -25%;
+  left: 0;
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.125rem 1.125rem 0;
+}
+
+.motion-enhanced .chapter-story__overlay-title,
+.motion-enhanced .chapter-story__overlay-subtitle {
+  font-size: 4.5rem;
+  line-height: 0.8;
+  white-space: pre-line;
+}
+
+.motion-enhanced .chapter-story__overlay-subtitle {
+  color: #fffcf5;
+}
+
+.motion-enhanced .chapter-story__stats {
+  position: absolute;
+  inset: 1.125rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.motion-enhanced .chapter-story__stats > div {
+  display: block;
+}
+
+.motion-enhanced .chapter-story__stats[data-stat-count="2"] > div:nth-child(1) {
+  align-self: flex-start;
+}
+
+.motion-enhanced .chapter-story__stats[data-stat-count="2"] > div:nth-child(2) {
+  align-self: flex-end;
+}
+
+.motion-enhanced .chapter-story__stats[data-stat-count="3"] > div:nth-child(1) {
+  align-self: flex-end;
+}
+
+.motion-enhanced .chapter-story__stats[data-stat-count="3"] > div:nth-child(2) {
+  align-self: flex-start;
+}
+
+.motion-enhanced .chapter-story__stats[data-stat-count="3"] > div:nth-child(3) {
+  align-self: center;
+}
+
+.motion-enhanced .chapter-story__stats dt {
+  display: none;
+}
+
+.motion-enhanced .chapter-story__stats dd {
+  font-size: 16.875rem;
+  line-height: 0.8;
+  letter-spacing: normal;
+}
+
+/* --- The footer signature enters from the centre ------------------------- */
+
+.site-footer__signature {
+  will-change: transform;
+}
+
+/* --- Small screens: the same content, stacked ---------------------------- */
+
+@media (max-width: 991px) {
+  .intro {
+    gap: 3.1875rem;
+    padding: 14rem 1.25rem 10.875rem;
+  }
+
+  .intro__head {
+    padding-top: 0.8125rem;
+  }
+
+  .intro__title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .intro__group {
+    gap: 1rem;
+  }
+
+  .intro__copy {
+    width: 100%;
+    max-width: none;
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+
+  .site-nav {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .site-nav__track a {
+    font-size: 0.5rem;
+  }
+
+  .site-nav__label--long {
+    display: none;
+  }
+
+  .site-nav__label--short {
+    display: inline;
+  }
+
+  .global-frame-stage {
+    display: none;
+  }
+
+  .chapter-jersey__video {
+    display: none;
+  }
+
+  .chapter-jersey__still {
+    display: block;
+  }
+
+  .chapter-panel--jersey {
+    min-height: 90svh;
+  }
+
+  .chapter-jersey__mark {
+    width: 88vw;
+  }
+
+  .chapter-jersey__numbers {
+    top: 56%;
+    gap: 1rem;
+    font-size: 36vw;
+  }
+
+  .chapter-gallery__strip {
+    grid-template-columns: 1fr;
+  }
+
+  .chapter-story__film {
+    height: 46svh;
+  }
+
+  .chapter-story__intro {
+    padding-top: 3rem;
+  }
+
+  .chapter-story__copy {
+    margin-left: 0;
+  }
+
+  .chapter-story__overlay {
+    min-height: auto;
+  }
+
+  .chapter-story__stat dd {
+    font-size: 22vw;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-frame-stage {
+    display: none;
+  }
+
+  .chapter-shell {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .chapter-track {
+    display: block;
+    width: 100%;
+    height: auto;
+    transform: none !important;
+  }
+
+  .chapter-panel {
+    width: 100% !important;
+    min-height: 0;
+    height: auto;
+    transform: none !important;
+  }
+
+  .chapter-story__film {
+    position: relative;
+    inset: auto;
+    height: 50svh;
+    clip-path: none !important;
+  }
+
+  .chapter-story__overlay {
+    position: relative;
+    inset: auto;
+    transform: none !important;
+  }
+
+  .intro__word-inner {
+    transform: none !important;
   }
 }

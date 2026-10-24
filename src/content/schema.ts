@@ -67,8 +67,12 @@ export interface FrameSequence {
 export interface Chapter {
   id: string;
   navLabel: string;
+  /** The compact label the reference shows in the mobile navigation. */
+  navLabelShort?: string;
   title: string;
   kicker: string;
+  /** The story panel's two display lines, top-left and bottom-right. */
+  storyHeadline: { lead: string; tail: string };
   period: string;
   intro: string;
   body: string[];
@@ -78,6 +82,8 @@ export interface Chapter {
   gallery: GalleryImage[];
   jersey?: ResponsiveImage;
   featureMedia: ResponsiveImage;
+  /** Full-bleed film behind the story panel; a still for chapter one. */
+  filmVideo?: VideoMedia;
   featureVideo?: VideoMedia;
   frameSequence: FrameSequence;
   mobileVideo: VideoMedia;
@@ -272,6 +278,9 @@ export function validatePersonContent(person: PersonContent): void {
     }
     ids.add(chapter.id);
     assertText(chapter.navLabel, `${chapter.id}.navLabel`);
+    if (chapter.navLabelShort !== undefined) {
+      assertText(chapter.navLabelShort, `${chapter.id}.navLabelShort`);
+    }
     assertText(chapter.clubName, `${chapter.id}.clubName`);
     assertText(chapter.shirtNumber, `${chapter.id}.shirtNumber`);
     assertColor(chapter.typeColor, `${chapter.id}.typeColor`);

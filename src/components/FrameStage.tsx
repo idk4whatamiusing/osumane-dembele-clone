@@ -31,6 +31,7 @@ const emptyState: FrameStageState = {
   sequence: null,
   index: 0,
   opacity: 0,
+  yPercent: -50,
   offsetY: 0,
   scale: 1,
   active: false

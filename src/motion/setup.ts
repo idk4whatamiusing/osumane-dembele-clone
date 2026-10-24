@@ -5,46 +5,8 @@ import { restoreSplit, splitElement } from "@/src/motion/split";
 
 const DESKTOP_MOTION_QUERY = "(min-width: 992px) and (prefers-reduced-motion: no-preference)";
 
-/**
- * The reference site scrubs the horizontal track of a chapter over roughly
- * twice its own width, which is what makes the movement feel unhurried.
- */
-const PIN_RATIO = 2.1;
-
-/** Extra travel appended to a chapter so the last scene settles. */
-const CHAPTER_OVERSCROLL = 240;
-
-// The rotating jersey is a beat that passes over the chapter between the
-// club mark and the title, the way the reference site brings the fabric
-// full screen for a moment before the chapter carries on.
-const STAGE_IN_START = 0.26;
-const STAGE_IN_END = 0.33;
-const STAGE_OUT_START = 0.42;
-const STAGE_OUT_END = 0.5;
-
-/** The jersey completes a full rotation over the first half of a chapter. */
-function stageIndex(progress: number, frameCount: number): number {
-  const span = Math.min(1, Math.max(0, (progress - 0.02) / 0.5));
-  return Math.round(span * (frameCount - 1));
-}
-
-function stageOpacity(progress: number): number {
-  if (progress <= STAGE_IN_START) return 0;
-  if (progress <= STAGE_IN_END) {
-    return (progress - STAGE_IN_START) / (STAGE_IN_END - STAGE_IN_START);
-  }
-  if (progress <= STAGE_OUT_START) return 1;
-  if (progress >= STAGE_OUT_END) return 0;
-  return 1 - (progress - STAGE_OUT_START) / (STAGE_OUT_END - STAGE_OUT_START);
-}
-
-/** The jersey grows a little while it passes, the way it zooms on the reference. */
-function stageScale(progress: number): number {
-  if (progress <= STAGE_IN_START) return 1;
-  if (progress >= STAGE_OUT_END) return 1;
-  const span = Math.min(1, Math.max(0, (progress - STAGE_IN_START) / (STAGE_OUT_END - STAGE_IN_START)));
-  return 1 + span * 0.18;
-}
+/** The reference site always appends three thousand pixels to a chapter. */
+const CHAPTER_OVERSCROLL = 3000;
 
 function readSequence(shell: HTMLElement): FrameSequence | null {
   const raw = shell.dataset.frameSequence;
@@ -56,15 +18,16 @@ function readSequence(shell: HTMLElement): FrameSequence | null {
   }
 }
 
-/** Starts or stops the footage of a chapter. */
 function playFootage(shell: HTMLElement, playing: boolean): void {
-  const video = shell.querySelector<HTMLVideoElement>(".chapter-scene__video");
-  if (!video) return;
-  if (playing) {
-    void video.play().catch(() => undefined);
-    return;
-  }
-  video.pause();
+  shell
+    .querySelectorAll<HTMLVideoElement>(".chapter-story__video")
+    .forEach((video) => {
+      if (playing) {
+        void video.play().catch(() => undefined);
+        return;
+      }
+      video.pause();
+    });
 }
 
 function waitForLoader(): Promise<void> {
@@ -78,7 +41,7 @@ function waitForLoader(): Promise<void> {
       window.clearTimeout(timeout);
       resolve();
     };
-    const timeout = window.setTimeout(finish, 5000);
+    const timeout = window.setTimeout(finish, 8000);
     window.addEventListener("osumane:loader-ready", finish, { once: true });
   });
 }
@@ -108,7 +71,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
   matchMedia.add(DESKTOP_MOTION_QUERY, () => {
     const lenis = new Lenis({
       autoRaf: false,
-      duration: 1.6,
+      duration: 1.4,
       smoothWheel: true,
       syncTouch: false,
       wheelMultiplier: 0.9,
@@ -123,8 +86,6 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
     (window as unknown as { gsap?: unknown }).gsap = gsap;
     (window as unknown as { ScrollTrigger?: unknown }).ScrollTrigger = ScrollTrigger;
 
-    // In-page links are scrolled by Lenis so the pinned sections keep their
-    // position instead of being jumped to by the native anchor behaviour.
     const onAnchorClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -138,7 +99,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
       event.preventDefault();
       const top = target.getBoundingClientRect().top + window.scrollY;
       lenis.scrollTo(top, {
-        duration: 1.4,
+        duration: 1.2,
         onComplete: () => ScrollTrigger.refresh()
       });
       history.pushState(null, "", href);
@@ -146,14 +107,10 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
     document.addEventListener("click", onAnchorClick);
 
     const context = gsap.context(() => {
-      // The pinned horizontal layout is switched on here, behind the
-      // preloader fade, so the reflow never happens in front of the reader.
       document.documentElement.classList.add("motion-enhanced");
       document.documentElement.classList.remove("motion-pending");
 
-      // --- The hero --------------------------------------------------------
-      // The reference site paints the cream of the opening screen on a fixed
-      // layer that fades away while the introduction arrives.
+      // --- The hero ------------------------------------------------------
       const hero = document.querySelector<HTMLElement>(".hero");
       if (hero) {
         gsap.to(hero, {
@@ -169,234 +126,403 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
         });
       }
 
-      // --- The wordmark ----------------------------------------------------
       gsap.fromTo(
         "[data-wordmark-hero]",
         { autoAlpha: 0, yPercent: 12 },
-        { autoAlpha: 1, yPercent: 0, duration: 1.2, ease: "power3.out", delay: 0.15 }
+        { autoAlpha: 1, yPercent: 0, duration: 1.2, ease: "power3.out", delay: 0.1 }
       );
 
-      // --- The introduction ------------------------------------------------
-      // The title starts centred and its words scatter to the edges of the
-      // viewport while the section scrolls away.
+      // --- The introduction ---------------------------------------------
       const intro = document.getElementById("introduction");
-      const words = gsap.utils.toArray<HTMLElement>("[data-intro-word]");
-      if (intro && words.length) {
-        const targets = [18, 131, 1138];
-        const introTop = () => intro.getBoundingClientRect().top + window.scrollY;
-        words.forEach((word, index) => {
-          const target = targets[index] ?? targets[targets.length - 1];
-          const from = word.getBoundingClientRect().left;
-          gsap.to(word, {
-            x: target - from,
-            duration: 1.2,
-            ease: "power4.inOut",
+      if (intro) {
+        const titleWords = intro.querySelectorAll<HTMLElement>(".intro__word-inner");
+        gsap.set(titleWords, { yPercent: 120 });
+        gsap.to(titleWords, {
+          yPercent: 0,
+          duration: 1,
+          stagger: 0.07,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: intro,
+            start: "top 78%",
+            once: true
+          }
+        });
+
+        const copy = intro.querySelector<HTMLElement>(".intro__copy");
+        const paragraphWords = Array.from(
+          intro.querySelectorAll<HTMLElement>("[data-intro-para-word]")
+        );
+        if (copy && paragraphWords.length) {
+          // The reference groups the copy into rendered lines, then reveals
+          // each line with a short word stagger on a scrubbed timeline.
+          const lines: HTMLElement[][] = [];
+          let lastTop: number | null = null;
+          paragraphWords.forEach((word) => {
+            if (lastTop === null || word.offsetTop !== lastTop) {
+              lines.push([]);
+              lastTop = word.offsetTop;
+            }
+            lines[lines.length - 1].push(word);
+          });
+
+          gsap.set(paragraphWords, { opacity: 0 });
+          const writeTimeline = gsap.timeline({
             scrollTrigger: {
-              trigger: intro,
-              start: "top center",
-              toggleActions: "play none none reverse",
-              invalidateOnRefresh: true
+              trigger: copy,
+              start: "top 80%",
+              end: "bottom 60%",
+              scrub: 1
             }
           });
-        });
+
+          lines.forEach((line, index) => {
+            writeTimeline.to(
+              line,
+              {
+                opacity: 1,
+                duration: 0.5,
+                stagger: 0.1,
+                ease: "none"
+              },
+              0.3 * index
+            );
+          });
+        }
       }
 
-      // --- Chapters --------------------------------------------------------
-      // Each chapter is one horizontal timeline. The tween is kept so that
-      // every reveal inside the track can be attached to it with
-      // `containerAnimation`, which makes an element animate exactly when it
-      // slides into the viewport instead of when the section is entered.
-      const trackTweens = new Map<HTMLElement, gsap.core.Tween>();
+      // --- Chapters ------------------------------------------------------
       const shells = gsap.utils.toArray<HTMLElement>(".chapter-shell");
-      let activeChapter: string | null = null;
 
       shells.forEach((shell) => {
         const track = shell.querySelector<HTMLElement>("[data-chapter-track]");
         if (!track) return;
         const sequence = readSequence(shell);
-        const distance = () =>
-          Math.max(0, track.scrollWidth - window.innerWidth + CHAPTER_OVERSCROLL);
-        const tween = gsap.to(track, {
-          x: () => -distance(),
-          ease: "none",
+        const distance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+
+        const mark = shell.querySelector<HTMLElement>(".chapter-jersey__mark");
+        const markPaths = Array.from(
+          shell.querySelectorAll<SVGPathElement>(".chapter-jersey__mark-svg path")
+        );
+        const jerseyVideo = shell.querySelector<HTMLVideoElement>(".chapter-jersey__video");
+        const numbers = shell.querySelectorAll<HTMLElement>("[data-number-half]");
+        const galleryPanel = shell.querySelector<HTMLElement>(".chapter-panel--gallery");
+        const galleryStrip = shell.querySelector<HTMLElement>("[data-gallery-strip]");
+        const storyPanel = shell.querySelector<HTMLElement>(".chapter-panel--story");
+        const film = shell.querySelector<HTMLElement>("[data-chapter-film]");
+        const storyIntro = shell.querySelector<HTMLElement>("[data-story-intro]");
+        const storyOverlay = shell.querySelector<HTMLElement>("[data-story-overlay]");
+
+        // The reference draws one path per letter of the hand-lettered mark,
+        // one second each with a tenth-of-a-second stagger.
+        markPaths.forEach((path) => {
+          const length = path.getTotalLength();
+          path.style.strokeDasharray = `${length}`;
+          path.style.strokeDashoffset = `${length}`;
+          path.style.fillOpacity = "0";
+        });
+        const pathsComplete = markPaths.length
+          ? 1 + (markPaths.length - 1) * 0.1
+          : 0;
+        const moveStart = pathsComplete + 1.7;
+
+        gsap.set(numbers, {
+          yPercent: (index) => (index === 0 ? -100 : 100),
+          opacity: 0
+        });
+        if (jerseyVideo) gsap.set(jerseyVideo, { width: "0%" });
+        if (film) {
+          gsap.set(film, {
+            clipPath: "polygon(25% 36%, 70% 36%, 70% 55%, 25% 55%)"
+          });
+        }
+        if (storyOverlay) gsap.set(storyOverlay, { yPercent: 200 });
+
+        const stage = { opacity: 0, yPercent: -50 };
+        const publishStage = () => {
+          publishFrameStage({
+            chapterId: shell.id,
+            sequence,
+            opacity: stage.opacity,
+            yPercent: stage.yPercent,
+            active: stage.opacity > 0.001
+          });
+        };
+
+        const timeline = gsap.timeline({
           scrollTrigger: {
             trigger: shell,
             start: "top top",
-            end: () => `+=${Math.round(track.scrollWidth + 3000)}`,
+            end: () => `+=${Math.round(distance() + CHAPTER_OVERSCROLL)}`,
             pin: true,
-            scrub: 0.8,
+            scrub: 1,
             anticipatePin: 1,
             invalidateOnRefresh: true,
             onEnter: () => {
-              activeChapter = shell.id;
-              publishFrameStage({ chapterId: shell.id, sequence: sequence ?? null, active: true });
-              playFootage(shell, true);
-            },
-            onEnterBack: () => {
-              activeChapter = shell.id;
-              publishFrameStage({ chapterId: shell.id, sequence: sequence ?? null, active: true });
-              playFootage(shell, true);
-            },
-            onLeave: () => playFootage(shell, false),
-            onLeaveBack: () => playFootage(shell, false),
-            onUpdate: (self) => {
-              if (activeChapter !== shell.id || !sequence) return;
+              stage.opacity = 0;
+              stage.yPercent = -50;
               publishFrameStage({
                 chapterId: shell.id,
                 sequence,
-                index: stageIndex(self.progress, sequence.frameCount),
-                opacity: stageOpacity(self.progress),
-                offsetY: 0,
-                scale: stageScale(self.progress),
-                active: stageOpacity(self.progress) > 0.001
+                opacity: 0,
+                yPercent: -50,
+                active: true
+              });
+              playFootage(shell, true);
+            },
+            onEnterBack: () => {
+              publishFrameStage({
+                chapterId: shell.id,
+                sequence,
+                opacity: stage.opacity,
+                yPercent: stage.yPercent,
+                active: true
+              });
+              playFootage(shell, true);
+            },
+            onLeave: () => {
+              playFootage(shell, false);
+              publishFrameStage({ active: false, opacity: 0 });
+            },
+            onLeaveBack: () => {
+              playFootage(shell, false);
+              publishFrameStage({ active: false, opacity: 0, yPercent: -50 });
+            },
+            onUpdate: publishStage
+          }
+        });
+
+        timeline.eventCallback("onUpdate", publishStage);
+
+        // The reference timeline: the paths draw one by one, the garment video
+        // opens behind them, the number rolls in over the jersey, then the
+        // horizontal track takes over.
+        timeline.to(
+          markPaths,
+          {
+            strokeDashoffset: 0,
+            fillOpacity: 1,
+            duration: 1,
+            stagger: 0.1,
+            ease: "power2.inOut"
+          },
+          0
+        );
+        timeline.to(stage, { opacity: 1, duration: 0.8, ease: "power2.inOut" }, 0);
+        if (jerseyVideo) {
+          timeline.to(
+            jerseyVideo,
+            { width: "100%", duration: 1, ease: "power2.inOut" },
+            pathsComplete + 0.3
+          );
+        }
+        timeline.to(
+          mark,
+          { opacity: 0, duration: 0.5, ease: "power2.out" },
+          pathsComplete + 0.5
+        );
+        timeline.to(
+          numbers,
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power2.out"
+          },
+          pathsComplete + 0.8
+        );
+
+        // The track waits for the number beat, then runs through the gallery
+        // and the film. The jersey stays centred over the gallery.
+        timeline.to(
+          track,
+          { x: () => -distance(), duration: 2, ease: "none" },
+          moveStart
+        );
+
+        // The film opens only once the story panel has arrived. At the same
+        // time the jersey canvas drops away below it.
+        if (film) {
+          timeline.to(
+            film,
+            {
+              clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+              duration: 1.2,
+              ease: "power2.inOut"
+            },
+            moveStart + 2
+          );
+        }
+        timeline.to(
+          stage,
+          {
+            yPercent: 125,
+            opacity: 0,
+            duration: 1.2,
+            ease: "power2.inOut",
+            onUpdate: publishStage
+          },
+          moveStart + 2
+        );
+        if (storyIntro) {
+          timeline.to(
+            storyIntro,
+            { opacity: 0, duration: 0.72, ease: "none" },
+            moveStart + 2.4
+          );
+        }
+        if (storyOverlay) {
+          timeline.to(
+            storyOverlay,
+            { yPercent: 0, duration: 2, ease: "power2.out" },
+            moveStart + 3.4
+          );
+        }
+
+        // The title and the photographs move at different speeds, exactly
+        // like the reference containerAnimation parallax.
+        if (galleryPanel && galleryStrip) {
+          const items = Array.from(
+            galleryStrip.querySelectorAll<HTMLElement>("[data-gallery-item]")
+          );
+          gsap.set(items, { xPercent: 50 });
+          gsap.set(galleryStrip, { xPercent: 20 });
+
+          const stripTrigger = {
+            trigger: galleryPanel,
+            containerAnimation: timeline,
+            start: "left left",
+            end: "right left-=25%",
+            invalidateOnRefresh: true
+          };
+          gsap.to(galleryStrip, {
+            xPercent: -30,
+            ease: "power1.out",
+            scrollTrigger: { ...stripTrigger, scrub: 3 }
+          });
+          gsap.to(items, {
+            xPercent: -50,
+            ease: "power1.out",
+            stagger: 0.05,
+            scrollTrigger: { ...stripTrigger, scrub: 2 }
+          });
+        }
+
+        if (galleryPanel) {
+          const title = galleryPanel.querySelector<HTMLElement>("[data-split]");
+          if (title) {
+            const parts = splitElement(title, "chars");
+            splitElements.push(title);
+            const inner = parts
+              .map((part) => part.firstElementChild)
+              .filter((part): part is HTMLElement => part instanceof HTMLElement);
+            if (inner.length) {
+              gsap.set(inner, { yPercent: 150 });
+              gsap.to(inner, {
+                yPercent: 0,
+                duration: 1,
+                stagger: 0.01,
+                ease: "expo.out",
+                scrollTrigger: {
+                  trigger: galleryPanel,
+                  containerAnimation: timeline,
+                  start: "left+=9% left",
+                  toggleActions: "play none none reverse",
+                  invalidateOnRefresh: true
+                }
               });
             }
           }
-        });
-        trackTweens.set(track, tween);
+        }
 
-        // The club mark is drawn on as a stroke, the way the reference site
-        // brings the brush script to life, then its fill fades in.
-        // (Club mark DrawSVG is handled by the ClubMark component itself.)
-
-        // The footage of the season fades in over the portrait, the way the
-        // reference site replaces the illustration with the match scenes. The
-        // headline of the chapter gives way to the headings of the footage.
-        const film = shell.querySelector<HTMLElement>("[data-chapter-film]");
-        if (film) {
-          const range = {
-            trigger: film,
-            containerAnimation: tween,
-            start: "left 62%",
-            end: "left 18%",
-            scrub: true,
-            invalidateOnRefresh: true
-          };
-          gsap.fromTo(film, { autoAlpha: 0 }, { autoAlpha: 1, ease: "none", scrollTrigger: range });
-          const headline = shell.querySelector<HTMLElement>(".chapter-scene__headline");
-          if (headline) {
-            gsap.fromTo(
-              headline,
-              { autoAlpha: 1 },
-              { autoAlpha: 0, ease: "none", scrollTrigger: { ...range } }
-            );
-          }
-          const overlay = shell.querySelector<HTMLElement>(".chapter-scene__overlay");
-          if (overlay) {
-            gsap.fromTo(
-              overlay,
-              { autoAlpha: 0 },
-              {
-                autoAlpha: 1,
-                ease: "none",
-                scrollTrigger: { ...range, start: "left 40%", end: "left 12%" }
+        if (storyPanel) {
+          storyPanel
+            .querySelectorAll<HTMLElement>("[data-split]")
+            .forEach((element) => {
+              const isOverlay = Boolean(element.closest("[data-story-overlay]"));
+              const parts = splitElement(element, "chars");
+              splitElements.push(element);
+              const inner = parts
+                .map((part) => part.firstElementChild)
+                .filter((part): part is HTMLElement => part instanceof HTMLElement);
+              if (!inner.length) return;
+              if (isOverlay) {
+                gsap.set(inner, { yPercent: 150 });
+                timeline.to(
+                  inner,
+                  {
+                    yPercent: 0,
+                    duration: 0.55,
+                    stagger: 0.012,
+                    ease: "expo.out"
+                  },
+                  moveStart + 3.4
+                );
+                return;
               }
-            );
-          }
+              gsap.fromTo(
+                inner,
+                { yPercent: 150 },
+                {
+                  yPercent: 0,
+                  duration: 0.8,
+                  stagger: 0.04,
+                  ease: "expo.out",
+                  scrollTrigger: {
+                    trigger: storyPanel,
+                    containerAnimation: timeline,
+                    start: "left 65%",
+                    toggleActions: "play none none reverse",
+                    invalidateOnRefresh: true
+                  }
+                }
+              );
+            });
         }
       });
 
-      // --- Reveals --------------------------------------------------------
-      const triggerFor = (element: HTMLElement) => {
-        const track = element.closest<HTMLElement>("[data-chapter-track]");
-        const tween = track ? trackTweens.get(track) : undefined;
-        const scene = element.closest<HTMLElement>(".chapter-scene");
-        // The first scene of a chapter is already on screen when the section
-        // pins, so it reveals on the section itself. Every later scene is
-        // revealed by its horizontal position inside the track.
-        const leads = scene?.getAttribute("data-scene") === "mark";
-        if (tween && !leads) {
-          return {
-            trigger: element,
-            containerAnimation: tween,
-            start: "left+=9% left",
-            once: true
-          };
-        }
-        return {
-          trigger: element.closest<HTMLElement>(".chapter-shell") ?? element,
-          start: "top 70%",
-          once: true
-        };
-      };
-
+      // --- Reveals outside the chapters ---------------------------------
       gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((element) => {
-        // Elements the current layout does not render (hidden panels) have no
-        // measurable box, so a scroll trigger on them can never resolve.
+        if (element.closest(".chapter-shell")) return;
         if (element.getClientRects().length === 0) return;
-        // Split text is animated through its own parts.
-        if (element.hasAttribute("data-split")) return;
-        const delay = parseFloat(element.getAttribute("delay") ?? "0") || 0;
         gsap.fromTo(
           element,
-          { y: 46, autoAlpha: 0 },
-          { y: 0, autoAlpha: 1, duration: 0.9, delay, ease: "power3.out", scrollTrigger: triggerFor(element) }
-        );
-      });
-
-      // --- Split text ------------------------------------------------------
-      gsap.utils.toArray<HTMLElement>("[data-split]").forEach((element) => {
-        if (element.getClientRects().length === 0) return;
-        const mode = element.getAttribute("data-split") === "words" ? "words" : "chars";
-        const parts = splitElement(element, mode);
-        splitElements.push(element);
-        const inner = parts
-          .map((part) => part.firstElementChild)
-          .filter((part): part is HTMLElement => part instanceof HTMLElement);
-        if (inner.length === 0) return;
-        const scrollTrigger = triggerFor(element);
-        if (mode === "words") {
-          gsap.fromTo(
-            inner,
-            { yPercent: 60, autoAlpha: 0 },
-            {
-              yPercent: 0,
-              autoAlpha: 1,
-              duration: 1.3,
-              stagger: 0.05,
-              delay: parseFloat(element.getAttribute("delay") ?? "0") || 0,
-              ease: "power3.inOut",
-              scrollTrigger
-            }
-          );
-        } else {
-          gsap.fromTo(
-            inner,
-            { yPercent: 115 },
-            {
-              yPercent: 0,
-              duration: 1,
-              stagger: 0.01,
-              delay: parseFloat(element.getAttribute("delay") ?? "0") || 0,
-              ease: "expo.out",
-              scrollTrigger
-            }
-          );
-        }
-      });
-
-      gsap.utils.toArray<HTMLElement>("[data-gallery-item]").forEach((item) => {
-        const image = item.querySelector("img");
-        if (!image) return;
-        const track = item.closest<HTMLElement>("[data-chapter-track]");
-        const tween = track ? trackTweens.get(track) : undefined;
-        if (!tween) return;
-        gsap.fromTo(
-          image,
-          { xPercent: -6 },
+          { y: 42, autoAlpha: 0 },
           {
-            xPercent: 6,
-            ease: "none",
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.9,
+            ease: "power3.out",
             scrollTrigger: {
-              trigger: item,
-              containerAnimation: tween,
-              start: "left right",
-              end: "right left",
-              scrub: true
+              trigger: element,
+              start: "top 82%",
+              once: true
             }
           }
         );
       });
+
+      // --- The footer signature -----------------------------------------
+      const signature = document.querySelector<HTMLElement>(".site-footer__signature");
+      const footer = document.getElementById("credits");
+      if (signature && footer) {
+        gsap.set(signature, {
+          scale: 0.1,
+          xPercent: -50,
+          transformOrigin: "50% 50%"
+        });
+        gsap.to(signature, {
+          scale: 1,
+          duration: 1.2,
+          ease: "expo.out",
+          scrollTrigger: {
+            trigger: footer,
+            start: "center bottom",
+            once: true
+          }
+        });
+      }
     }, root);
 
     const refresh = () => ScrollTrigger.refresh();
@@ -420,9 +546,8 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
       publishFrameStage({
         chapterId: null,
         sequence: null,
-        index: 0,
         opacity: 0,
-        offsetY: 0,
+        yPercent: -50,
         active: false
       });
       releaseAllFrames();

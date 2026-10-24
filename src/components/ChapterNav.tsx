@@ -5,6 +5,8 @@ import { useEffect, useState, type CSSProperties } from "react";
 export interface ChapterNavItem {
   id: string;
   label: string;
+  /** Compact label used below the desktop breakpoint. */
+  shortLabel?: string;
 }
 
 interface ChapterNavProps {
@@ -74,9 +76,19 @@ export function ChapterNav({ name, items, navigationLabel }: ChapterNavProps) {
           <a
             key={item.id}
             href={`#${item.id}`}
+            aria-label={item.label}
             aria-current={active === item.id ? "location" : undefined}
           >
-            {item.label}
+            {item.shortLabel ? (
+              <>
+                <span className="site-nav__label site-nav__label--long">{item.label}</span>
+                <span className="site-nav__label site-nav__label--short" aria-hidden="true">
+                  {item.shortLabel}
+                </span>
+              </>
+            ) : (
+              item.label
+            )}
           </a>
         ))}
         </nav>

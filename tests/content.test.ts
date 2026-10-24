@@ -28,18 +28,37 @@ describe("person content contract", () => {
       expect(path).not.toMatch(/^https?:\/\//);
       expect(path).not.toContain("..");
     });
+    // Reference imagery is shipped with the owned bundle; only heavyweight
+    // or non-image media is swapped for the owned fallbacks.
     expect(resolveMediaPath(referencePerson.hero.image.src, "owned")).toBe(
-      "/assets/core/fallback-poster.svg"
+      referencePerson.hero.image.src
     );
+    expect(
+      resolveMediaPath("/assets/reference/video/chapter-01-jersey-data.mp4", "owned")
+    ).toBe("/assets/core/fallback.mp4");
   });
 
-  it("removes reference paths from owned Worker content", () => {
+  it("keeps reference imagery but swaps non-image media in owned content", () => {
     const owned = contentForProfile(referencePerson, "owned");
     const paths = collectPaths(owned);
     expect(paths.length).toBeGreaterThan(40);
-    paths.forEach((path) => expect(path).not.toContain("/assets/reference/"));
+    paths.forEach((path) => {
+      if (path.startsWith("/assets/reference/")) {
+        // srcSet descriptors are space-separated, so match the extension
+        // anywhere in the value rather than only at the end.
+        expect(path).toMatch(/\.(avif|webp|png|jpe?g|svg)(?:\s|$)/i);
+      }
+    });
+    expect(owned.hero.image.src).toBe(referencePerson.hero.image.src);
     expect(owned.audio.src).toBe("/assets/core/ambient.mp3");
     expect(owned.scene.model).toBe("");
+    expect(owned.chapters.every((chapter) => chapter.featureVideo?.mp4 === "/assets/core/fallback.mp4")).toBe(true);
+    expect(
+      owned.chapters
+        .filter((chapter) => chapter.filmVideo)
+        .every((chapter) => chapter.filmVideo?.mp4 === "/assets/core/fallback.mp4")
+    ).toBe(true);
+    expect(owned.chapters.every((chapter) => chapter.mobileVideo.mp4 === "/assets/core/fallback.mp4")).toBe(true);
   });
 
   it("builds the configured frame sequence", () => {

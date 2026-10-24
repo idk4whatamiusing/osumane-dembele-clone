@@ -1,8 +1,6 @@
 import type { CSSProperties } from "react";
 import type { AssetProfile, Chapter, SiteLabels } from "@/src/content/schema";
 import { resolveMediaPath } from "@/src/lib/media";
-import { ChapterMedia } from "./ChapterMedia";
-import { FrameStage } from "./FrameStage";
 import { SafeImage } from "./SafeImage";
 import { ClubMark } from "./ClubMark";
 
@@ -15,12 +13,15 @@ interface ChapterTrackProps {
 }
 
 /**
- * A chapter is four horizontal scenes, following the reference site:
+ * A chapter is the reference site's three-panel horizontal sequence:
  *
- *  1. the club mark with the shirt number worn by the player
- *  2. the chapter title above a staggered grid of photographs
- *  3. the kicker over the chapter portrait, closed by the statistics
- *  4. the footage of the season under the headings of the chapter
+ *   1. the club mark, the rotating jersey and the shirt number;
+ *   2. the chapter title behind the four photographs;
+ *   3. the film and statement, closed by the statistics.
+ *
+ * The motion runtime pins the section and translates `.chapter-track` through
+ * those panels. Without JavaScript the panels stack and every asset is still
+ * readable.
  */
 export function ChapterTrack({ chapter, index, total, profile, labels }: ChapterTrackProps) {
   const style = {
@@ -32,7 +33,11 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
   } as CSSProperties;
 
   const strip = chapter.gallery.slice(0, 4);
-  const footage = chapter.featureVideo;
+  const jerseyVideo = chapter.featureVideo ?? chapter.mobileVideo;
+  const filmVideo = chapter.filmVideo;
+  const jersey = chapter.jersey ?? chapter.featureMedia;
+  const markSlug =
+    ["evreux", "rennes", "dortmund", "barca", "psg"][index] ?? "evreux";
 
   return (
     <section
@@ -42,42 +47,73 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
       aria-labelledby={`${chapter.id}-title`}
       data-chapter-title={chapter.title}
       data-chapter-period={chapter.period}
+      data-club={markSlug}
       data-frame-sequence={JSON.stringify(chapter.frameSequence)}
     >
-      <FrameStage
-        chapterId={chapter.id}
-        sequence={chapter.frameSequence}
-        accent={chapter.accent}
-        profile={profile}
-      />
       <div className="chapter-track" data-chapter-track>
-        {/* 1 — the club mark and the shirt number */}
-        <div className="chapter-scene chapter-scene--mark" data-scene="mark">
-          <p className="chapter-scene__numerals" aria-hidden="true">
-            {chapter.shirtNumber.split("").map((digit, digitIndex) => (
-              <span key={`${digit}-${digitIndex}`}>{digit}</span>
-            ))}
-          </p>
-          <h2
-            id={`${chapter.id}-title`}
-            className="chapter-scene__club chapter-scene__club--mark"
-          >
-            <ClubMark
-              slug={["evreux", "rennes", "dortmund", "barca", "psg"][index] ?? "evreux"}
-              className="chapter-scene__club-svg"
+        {/* 1 — the mark, the rotating jersey and the shirt number */}
+        <article className="chapter-panel chapter-panel--jersey" data-panel="jersey">
+          <div className="chapter-jersey__media" aria-hidden="true">
+            <SafeImage
+              className="chapter-jersey__still"
+              src={resolveMediaPath(jersey.src, profile)}
+              alt=""
+              width={jersey.width}
+              height={jersey.height}
+              sizes="(max-width: 991px) 92vw, 70vh"
+              loading="lazy"
+              decoding="async"
             />
+            <video
+              className="chapter-jersey__video"
+              muted
+              loop
+              playsInline
+              autoPlay
+              preload="auto"
+              aria-hidden="true"
+            >
+              {jerseyVideo.webm ? (
+                <source src={resolveMediaPath(jerseyVideo.webm, profile)} type="video/webm" />
+              ) : null}
+              {jerseyVideo.mp4 ? (
+                <source src={resolveMediaPath(jerseyVideo.mp4, profile)} type="video/mp4" />
+              ) : null}
+            </video>
+          </div>
+
+          <h2 id={`${chapter.id}-title`} className="chapter-jersey__mark">
+            <ClubMark slug={markSlug} className="chapter-jersey__mark-svg" />
             <span className="sr-only">{chapter.clubName}</span>
           </h2>
-        </div>
 
-        {/* 2 — the chapter title above the photographs */}
-        <div className="chapter-scene chapter-scene--title" data-scene="title">
-          <h3 className="chapter-scene__display" data-reveal data-split="chars">
+          <p className="chapter-jersey__numbers" aria-hidden="true" data-jersey-numbers>
+            {chapter.shirtNumber.split("").map((digit, digitIndex) => (
+              <span key={`${digit}-${digitIndex}`} data-number-half>
+                {digit}
+              </span>
+            ))}
+          </p>
+
+          <span className="chapter-shell__index" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+            <i />
+            {String(total).padStart(2, "0")}
+          </span>
+        </article>
+
+        {/* 2 — the chapter title behind the photographs */}
+        <article className="chapter-panel chapter-panel--gallery" data-panel="gallery">
+          <h3 className="chapter-gallery__title" data-split="chars">
             {chapter.title}
           </h3>
-          <ul className="chapter-scene__strip" aria-label={`${labels.gallery} — ${chapter.title}`}>
+          <ul
+            className="chapter-gallery__strip"
+            data-gallery-strip
+            aria-label={`${labels.gallery} — ${chapter.title}`}
+          >
             {strip.map((item, itemIndex) => (
-              <li key={item.src} data-gallery-item data-reveal>
+              <li key={item.src} data-gallery-item>
                 <SafeImage
                   src={resolveMediaPath(item.src, profile)}
                   alt={item.alt}
@@ -95,87 +131,80 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
               </li>
             ))}
           </ul>
-        </div>
+        </article>
 
-        {/* 3 — the kicker over the portrait, closed by the statistics, then
-            the footage of the season fades in over the portrait */}
-        <div className="chapter-scene chapter-scene--portrait" data-scene="portrait">
-          <div className="chapter-scene__portrait-media">
-            <SafeImage
-              src={resolveMediaPath(chapter.featureMedia.src, profile)}
-              alt={chapter.featureMedia.alt}
-              width={chapter.featureMedia.width}
-              height={chapter.featureMedia.height}
-              srcSet={profile === "owned" ? undefined : chapter.featureMedia.srcSet}
-              sizes="(max-width: 991px) 92vw, 100vw"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-          {footage ? (
-            <div className="chapter-scene__film" data-chapter-film>
+        {/* 3 — the film, the statement and the statistics */}
+        <article className="chapter-panel chapter-panel--story" data-panel="story">
+          <div className="chapter-story__film" data-chapter-film>
+            {filmVideo ? (
               <video
-                className="chapter-scene__video"
-                poster={resolveMediaPath(footage.poster ?? chapter.featureMedia.src, profile)}
+                className="chapter-story__video"
                 muted
                 loop
                 playsInline
-                preload="none"
-                aria-label={footage.description}
+                autoPlay
+                preload="metadata"
+                aria-hidden="true"
+                data-chapter-film-video
               >
-                {footage.webm ? (
-                  <source src={resolveMediaPath(footage.webm, profile)} type="video/webm" />
+                {filmVideo.webm ? (
+                  <source src={resolveMediaPath(filmVideo.webm, profile)} type="video/webm" />
                 ) : null}
-                {footage.mp4 ? (
-                  <source src={resolveMediaPath(footage.mp4, profile)} type="video/mp4" />
+                {filmVideo.mp4 ? (
+                  <source src={resolveMediaPath(filmVideo.mp4, profile)} type="video/mp4" />
                 ) : null}
               </video>
+            ) : (
+              <SafeImage
+                className="chapter-story__poster"
+                src={resolveMediaPath(chapter.featureMedia.src, profile)}
+                alt=""
+                width={chapter.featureMedia.width}
+                height={chapter.featureMedia.height}
+                srcSet={profile === "owned" ? undefined : chapter.featureMedia.srcSet}
+                sizes="100vw"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+          </div>
+
+          <div className="chapter-story__intro" data-story-intro>
+            <div className="chapter-story__heading">
+              <h3 className="chapter-display chapter-story__lead">
+                {chapter.storyHeadline.lead}
+              </h3>
             </div>
-          ) : null}
-          <div className="chapter-scene__headline">
-            <p className="eyebrow" data-reveal>
-              {chapter.period}
-            </p>
-            <h3 className="chapter-scene__display chapter-scene__display--kicker" data-reveal data-split="chars">
-              {chapter.kicker}
-            </h3>
-          </div>
-          <div className="chapter-scene__body" data-reveal data-split="words">
-            <p>{chapter.intro}</p>
-            {chapter.body.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </div>
-          <dl className="chapter-scene__stats">
-            {chapter.stats.map((stat) => (
-              <div key={stat.label} className="chapter-scene__stat">
-                <dt data-reveal>{stat.label}</dt>
-                <dd data-reveal data-split="chars">
-                  {stat.value}
-                </dd>
+            <div className="chapter-story__bottom">
+              <div className="chapter-story__copy">
+                <p>{chapter.intro}</p>
               </div>
-            ))}
-          </dl>
-          <div className="chapter-scene__overlay">
-            <p className="chapter-scene__overlay-title" data-reveal data-split="chars">
-              {chapter.overlay.title}
-            </p>
-            <p className="chapter-scene__overlay-subtitle" data-reveal data-split="chars">
-              {chapter.overlay.subtitle}
-            </p>
+              <h3 className="chapter-display chapter-story__tail">
+                {chapter.storyHeadline.tail}
+              </h3>
+            </div>
           </div>
-          <ChapterMedia
-            sequence={chapter.frameSequence}
-            mobileVideo={chapter.mobileVideo}
-            profile={profile}
-          />
-        </div>
+
+          <div className="chapter-story__overlay" data-story-overlay>
+            <div className="chapter-story__overlay-heading">
+              <p className="chapter-story__overlay-title">
+                {chapter.overlay.title}
+              </p>
+              <p className="chapter-story__overlay-subtitle">
+                {chapter.overlay.subtitle}
+              </p>
+            </div>
+            <dl className="chapter-story__stats" data-stat-count={chapter.stats.length}>
+              {chapter.stats.map((stat) => (
+                <div key={stat.label} className="chapter-story__stat">
+                  <dt>{stat.label}</dt>
+                  <dd>{stat.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </article>
       </div>
-      <span className="chapter-shell__index" aria-hidden="true">
-        {String(index + 1).padStart(2, "0")}
-        <i />
-        {String(total).padStart(2, "0")}
-      </span>
     </section>
   );
 }
