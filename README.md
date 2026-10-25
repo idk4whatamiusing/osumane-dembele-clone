@@ -56,7 +56,7 @@ The schema lives in `src/content/schema.ts`. Components must not contain a subje
 
 ## Media
 
-The default development profile uses local files under `public/assets/reference/`. These files are temporary, `reference-only`, and excluded from Git and Worker deployment.
+The default profile uses local files under `public/assets/reference/`. These files are checked into the repository and included in the Worker deployment so the production site matches the reference.
 
 Refresh the reference package with:
 
@@ -79,7 +79,7 @@ The generated manifest is `public/assets/reference/manifest.json`. The current c
 
 Use `npm run assets:download -- --skip-frames` for a faster media-only refresh, `--force` to replace existing files, or `--concurrency=2` to reduce network pressure.
 
-Reference media must not be published. The Worker build copies the pre-rendered `/` document into `.open-next/assets` so the root is served as static HTML without streamed RSC injection, then strips the heavy reference video, audio, and frame directories. Deploy only owned or licensed media for a public Worker.
+The Worker build copies the pre-rendered `/` document into `.open-next/assets` so the root is served as static HTML without streamed RSC injection. The full reference media tree under `public/assets/reference/` is then uploaded with the Worker, so fonts, images, videos, audio, models, and sequence frames resolve on the deployed site.
 
 Reusable deployable fallbacks are generated in `public/assets/core/` by:
 
