@@ -10,7 +10,21 @@ export const metadata: Metadata = {
   authors: [{ name: "Osumane" }],
   creator: "Osumane",
   icons: {
-    icon: "/assets/core/icon.svg"
+    icon: [
+      {
+        url: "/assets/reference/images/favicon.png",
+        type: "image/png",
+        sizes: "32x32"
+      }
+    ],
+    shortcut: "/assets/reference/images/favicon.png",
+    apple: [
+      {
+        url: "/assets/reference/images/webclip.png",
+        type: "image/png",
+        sizes: "256x256"
+      }
+    ]
   },
   openGraph: {
     type: "website",

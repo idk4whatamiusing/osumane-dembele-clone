@@ -7,7 +7,6 @@ import { ClubMark } from "./ClubMark";
 interface ChapterTrackProps {
   chapter: Chapter;
   index: number;
-  total: number;
   profile: AssetProfile;
   labels: SiteLabels;
 }
@@ -23,7 +22,7 @@ interface ChapterTrackProps {
  * those panels. Without JavaScript the panels stack and every asset is still
  * readable.
  */
-export function ChapterTrack({ chapter, index, total, profile, labels }: ChapterTrackProps) {
+export function ChapterTrack({ chapter, index, profile, labels }: ChapterTrackProps) {
   const style = {
     "--chapter-accent": chapter.accent,
     "--chapter-foreground": chapter.foreground,
@@ -125,12 +124,6 @@ export function ChapterTrack({ chapter, index, total, profile, labels }: Chapter
               </span>
             ))}
           </p>
-
-          <span className="chapter-shell__index" aria-hidden="true">
-            {String(index + 1).padStart(2, "0")}
-            <i />
-            {String(total).padStart(2, "0")}
-          </span>
         </article>
 
         {/* 2 — the chapter title behind the photographs */}

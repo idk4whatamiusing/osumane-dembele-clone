@@ -159,10 +159,10 @@ const chapters: Chapter[] = [
       { value: "06", label: "passes décisives" }
     ],
     gallery: [
-      gallery("02", 1, "Joueur en maillot rouge et noir fêtant une victoire"),
-      gallery("02", 2, "Joueur en maillot rouge et noir levant les bras"),
-      gallery("02", 3, "Portrait du joueur en tenue de match"),
-      gallery("02", 4, "Joueur en maillot rouge et noir regardant vers le terrain")
+      gallery("02", 3, "Joueur en maillot rouge et noir levant les bras"),
+      gallery("02", 2, "Joueur en maillot rouge et noir fêtant une victoire"),
+      gallery("02", 1, "Joueur en maillot rouge et noir célébrant à genoux"),
+      gallery("02", 4, "Portrait du joueur en tenue de match")
     ],
     featureMedia: filmImage(
       "02",
@@ -434,7 +434,7 @@ const content: PersonContent = {
   audio: {
     src: "/assets/reference/audio/hold-to-play.mp3",
     label: "Écouter l’ambiance sonore",
-    holdLabel: "Maintenir pour écouter",
+    holdLabel: "Hold me",
     description:
       "Maintenez le bouton pour écouter une ambiance courte. Relâchez pour arrêter. Le son ne démarre jamais automatiquement.",
     transcript:
@@ -465,7 +465,7 @@ const content: PersonContent = {
     wordmark: "Ousmane Dembélé",
     statement: "Né pour briller.",
     credits: [
-      { name: "Clément Merouan", role: "Direction éditoriale" },
+      { name: "Clément Merouani", role: "Direction éditoriale" },
       { name: "Guillaume Colombel", role: "Design & motion" },
       { name: "Thomas Carré", role: "Développement" }
     ]

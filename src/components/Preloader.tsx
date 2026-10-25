@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { loaderSignaturePaths, loaderSignatureViewBox } from "@/src/content/loaderSignature";
+import { loaderMarkPaths, loaderMarkViewBox } from "@/src/content/loaderMark";
 
 interface PreloaderProps {
   name: string;
@@ -20,15 +20,11 @@ export function Preloader({ name }: PreloaderProps) {
     html.classList.add("is-loading");
     window.scrollTo(0, 0);
 
-    const paths = svg?.querySelectorAll<SVGPathElement>("path") ?? [];
-    paths.forEach((path) => {
-      const length = path.getTotalLength();
-      gsap.set(path, {
-        strokeDasharray: length,
-        strokeDashoffset: length,
-        fillOpacity: 0
-      });
-    });
+    // The reference loader is a drawn wordmark rather than a font. Fade the
+    // complete mark into place instead of stroking half a megabyte of SVG
+    // paths, which is expensive and makes the loader look like a different
+    // word while it is still incomplete.
+    if (svg) gsap.set(svg, { opacity: 0, y: 10 });
 
     // The loader is allowed to finish its signature while the hero scene
     // warms up. The site is only revealed once both are ready.
@@ -64,13 +60,12 @@ export function Preloader({ name }: PreloaderProps) {
         maybeReveal();
       }
     });
-    if (paths.length) {
-      signature.to(paths, {
-        strokeDashoffset: 0,
-        fillOpacity: 1,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power2.inOut"
+    if (svg) {
+      signature.to(svg, {
+        opacity: 1,
+        y: 0,
+        duration: 0.9,
+        ease: "power2.out"
       });
     }
     signature.to({}, { duration: 0.7 });
@@ -109,13 +104,13 @@ export function Preloader({ name }: PreloaderProps) {
       <span className="preloader__sig" aria-hidden="true">
         <svg
           ref={svgRef}
-          viewBox={loaderSignatureViewBox}
+          viewBox={loaderMarkViewBox}
           className="preloader__sig-svg"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          {loaderSignaturePaths.map((d, i) => (
+          {loaderMarkPaths.map((d, i) => (
             <path
               key={i}
               d={d}

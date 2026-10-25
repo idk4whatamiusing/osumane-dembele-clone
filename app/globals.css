@@ -16,6 +16,14 @@
 
 @font-face {
   font-family: Doner;
+  src: url("/assets/reference/fonts/Doner-ExtraBoldText.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: Doner;
   src: url("/assets/reference/fonts/Doner-MediumText.otf") format("opentype");
   font-display: swap;
   font-style: normal;
@@ -68,6 +76,14 @@
   font-display: swap;
   font-style: normal;
   font-weight: 500;
+}
+
+@font-face {
+  font-family: PPNeueMontreal;
+  src: url("/assets/reference/fonts/PPNeueMontreal-SemiBold.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 600;
 }
 
 .site-shell[data-asset-profile="reference"] {
@@ -226,6 +242,17 @@ ul {
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
+.preloader::after {
+  position: absolute;
+  inset: 0;
+  background-image: url("/assets/reference/images/grain.webp");
+  background-repeat: repeat;
+  background-size: 15rem 16.875rem;
+  content: "";
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .preloader.is-ready {
   visibility: hidden;
   opacity: 0;
@@ -233,21 +260,21 @@ ul {
 }
 
 .preloader__sig {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: BeingInktraps, "Brush Script MT", cursive;
-  font-size: clamp(3rem, 7.5vw, 7rem);
-  font-weight: 900;
   line-height: 1;
   text-align: center;
-  transform: rotate(-3deg);
 }
 
 .preloader__sig-svg {
-  width: min(80vw, 900px);
+  width: 313px;
+  max-width: 80vw;
   height: auto;
-  color: #c69653;
+  color: #c1b28b;
+  opacity: 0;
 }
 
 .preloader__sig-line {
@@ -257,9 +284,10 @@ ul {
 
 .preloader__bar {
   position: absolute;
-  right: var(--page-gutter);
-  bottom: 2.5rem;
-  left: var(--page-gutter);
+  z-index: 2;
+  right: 1.125rem;
+  bottom: 1.125rem;
+  left: 1.125rem;
   display: block;
   height: 1px;
   overflow: hidden;
@@ -294,40 +322,36 @@ ul {
   position: fixed;
   z-index: 70;
   right: 0;
-  bottom: 1.5rem;
+  bottom: 1.125rem;
   left: 0;
   display: flex;
   justify-content: center;
   pointer-events: none;
 }
 
-.wordmark p {
-  display: flex;
-  margin: 0;
-  color: var(--wordmark-accent, #c1b28b);
-  font-family: var(--font-display);
-  font-weight: 900;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 .wordmark__hero {
   position: absolute;
   bottom: 0;
+  left: 0;
   width: 100%;
-  justify-content: space-between;
-  padding: 0 var(--page-gutter);
-  font-size: clamp(1.5rem, 8.6vw, 8.4rem);
-  letter-spacing: -0.015em;
+  padding: 0 1.125rem;
+  color: var(--wordmark-accent, #c1b28b);
 }
 
 .wordmark__mini {
   position: absolute;
   bottom: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.02em;
+  left: 50%;
+  width: 140px;
+  color: var(--wordmark-accent, #c1b28b);
   opacity: 0;
+  transform: translateX(-50%);
+}
+
+.wordmark__svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* The scroll listener cannot cross-fade the two wordmarks without JavaScript. */
@@ -337,7 +361,7 @@ html:not(.js) .wordmark__hero {
 
 html:not(.js) .wordmark__mini {
   opacity: 1;
-  transform: none;
+  transform: translateX(-50%);
 }
 
 /* Without the chapter colour observer the nav keeps a readable contrast on
@@ -445,8 +469,8 @@ html:not(.js) .site-nav__track a {
   position: relative;
   z-index: 2;
   max-width: 4.5rem;
-  font-size: 0.52rem;
-  font-weight: 700;
+  font-size: 0.45rem;
+  font-weight: 900;
   letter-spacing: 0.08em;
   line-height: 1.05;
   text-align: center;
@@ -1298,7 +1322,8 @@ html:not(.js) .site-nav__track a {
 }
 
 .site-footer__credits h2 {
-  font-size: 0.62rem;
+  font-size: 0.45rem;
+  font-weight: 900;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -1314,17 +1339,18 @@ html:not(.js) .site-nav__track a {
 }
 
 .site-footer__credits dt {
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.45rem;
+  font-weight: 900;
 }
 
 .site-footer__credits dd {
   color: color-mix(in srgb, var(--page-ink, #0d0d0d) 58%, transparent);
-  font-size: 0.62rem;
+  font-size: 0.45rem;
 }
 
 .site-footer__credits > a {
-  font-size: 0.62rem;
+  font-size: 0.45rem;
+  font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -1825,10 +1851,6 @@ html:not(.js) .preloader {
 .preloader.is-ready {
   opacity: 0;
   visibility: hidden;
-}
-
-.preloader__bar {
-  display: none;
 }
 
 .site-nav {
@@ -2610,7 +2632,16 @@ html:not(.js) .preloader {
 /* --- Small screens: the same pinned sequence, scaled for touch ---------- */
 
 .motion-enhanced .chapter-jersey__video--mobile {
-  display: none;
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: min(42vw, 33rem);
+  height: auto;
+  max-height: 72vh;
+  object-fit: contain;
+  transform: translate(-50%, -50%);
 }
 
 .motion-enhanced .chapter-jersey__media {
@@ -2829,13 +2860,12 @@ html:not(.js) .preloader {
     bottom: 0.75rem;
   }
 
-  .js .wordmark p.wordmark__mini {
+  .js .wordmark .wordmark__mini {
     display: none;
   }
 
   .wordmark__hero {
     padding: 0 0.75rem;
-    font-size: 6.7vw;
   }
 
   /* The hero scene is decorative on touch screens. It must never swallow the

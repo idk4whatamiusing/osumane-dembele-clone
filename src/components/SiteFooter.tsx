@@ -52,9 +52,7 @@ export function SiteFooter({
         <span>{String(total).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
       </div>
       <FooterSignature className="site-footer__signature" />
-      <p className="site-footer__wordmark" aria-label={footer.wordmark}>
-        {footer.wordmark}
-      </p>
+      <span className="sr-only">{footer.wordmark}</span>
       <ul className="site-footer__gallery" aria-label={galleryLabel}>
         {gallery.map((item, index) => (
           <li key={item.src} data-gallery-item data-reveal>

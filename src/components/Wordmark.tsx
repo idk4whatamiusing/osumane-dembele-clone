@@ -1,30 +1,22 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { loaderSignaturePaths, loaderSignatureViewBox } from "@/src/content/loaderSignature";
 
 interface WordmarkProps {
-  /** Full name, rendered without its diacritics and in capitals. */
-  text: string;
-  /** Colour of the mark, the gold of the reference site. */
+  /** Accent colour of the mark, the gold of the reference site. */
   accent: string;
 }
 
 /**
  * The wordmark that sits at the bottom of the viewport.
  *
- * The reference site keeps a single mark in view: a large gold version while
- * the hero is on screen, and a small one pinned to the bottom edge for the
- * rest of the journey. Both states are rendered and cross faded so the
- * strokes keep their weight instead of being scaled down.
+ * The reference ships this as a vector mark, not live type. Using the same
+ * paths keeps the letterforms and the 140 × 10 mini mark identical to the
+ * source instead of approximating them with the display font.
  */
-export function Wordmark({ text, accent }: WordmarkProps) {
+export function Wordmark({ accent }: WordmarkProps) {
   const root = useRef<HTMLDivElement>(null);
-  const letters = Array.from(
-    text
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase()
-  );
 
   useEffect(() => {
     const element = root.current;
@@ -38,7 +30,7 @@ export function Wordmark({ text, accent }: WordmarkProps) {
       hero.style.opacity = String(1 - progress);
       hero.style.transform = `translateY(${-progress * 12}px)`;
       mini.style.opacity = String(progress);
-      mini.style.transform = `translateY(${(1 - progress) * 8}px)`;
+      mini.style.transform = `translate(-50%, ${(1 - progress) * 8}px)`;
     };
 
     onScroll();
@@ -50,6 +42,20 @@ export function Wordmark({ text, accent }: WordmarkProps) {
     };
   }, []);
 
+  const mark = (
+    <svg
+      viewBox={loaderSignatureViewBox}
+      className="wordmark__svg"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      focusable="false"
+    >
+      {loaderSignaturePaths.map((d, index) => (
+        <path key={index} d={d} fill="currentColor" />
+      ))}
+    </svg>
+  );
+
   return (
     <div
       ref={root}
@@ -58,16 +64,12 @@ export function Wordmark({ text, accent }: WordmarkProps) {
       aria-hidden="true"
       data-wordmark="true"
     >
-      <p className="wordmark__hero" data-wordmark-hero>
-        {letters.map((letter, index) => (
-          <span key={`${letter}-${index}`}>{letter === " " ? " " : letter}</span>
-        ))}
-      </p>
-      <p className="wordmark__mini" data-wordmark-mini>
-        {letters.map((letter, index) => (
-          <span key={`${letter}-${index}`}>{letter === " " ? " " : letter}</span>
-        ))}
-      </p>
+      <div className="wordmark__hero" data-wordmark-hero>
+        {mark}
+      </div>
+      <div className="wordmark__mini" data-wordmark-mini>
+        {mark}
+      </div>
     </div>
   );
 }

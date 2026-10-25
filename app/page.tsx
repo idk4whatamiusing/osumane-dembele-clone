@@ -5,7 +5,6 @@ import { contentForProfile } from "@/src/lib/media";
 import { ChapterNav } from "@/src/components/ChapterNav";
 import { ChapterTrack } from "@/src/components/ChapterTrack";
 import { GrainVeil } from "@/src/components/GrainVeil";
-import { GlobalFrameStage } from "@/src/components/GlobalFrameStage";
 import { Hero } from "@/src/components/Hero";
 import { Intro } from "@/src/components/Intro";
 import { MotionRoot } from "@/src/components/MotionRoot";
@@ -39,9 +38,8 @@ export default function Home() {
           navigationLabel={person.labels.navigation}
           introductionLabel={person.labels.introduction}
         />
-        <Wordmark text={person.footer.wordmark} accent={person.scene.accent} />
+        <Wordmark accent={person.scene.accent} />
         <GrainVeil />
-        <GlobalFrameStage profile={profile} />
         <main id="content">
           <Hero person={person} profile={profile} />
           <Intro
@@ -55,7 +53,6 @@ export default function Home() {
               key={chapter.id}
               chapter={chapter}
               index={index}
-              total={person.chapters.length}
               profile={profile}
               labels={person.labels}
             />
