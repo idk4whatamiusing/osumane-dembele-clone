@@ -493,9 +493,7 @@ const content: PersonContent = {
     wordmark: "Ousmane Dembélé",
     statement: "Né pour briller.",
     credits: [
-      { name: "Clément Merouani", role: "Direction éditoriale" },
-      { name: "Guillaume Colombel", role: "Design & motion" },
-      { name: "Thomas Carré", role: "Développement" }
+      { name: "Debopam Das", role: "Design & développement" }
     ]
   }
 };

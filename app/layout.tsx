@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   title: `${configuredPerson.name} — ${configuredPerson.hero.eyebrow}`,
   description: configuredPerson.seoDescription,
   applicationName: "Osumane Dembele Clone",
-  authors: [{ name: "Osumane" }],
-  creator: "Osumane",
+  authors: [{ name: "Debopam Das" }],
+  creator: "Debopam Das",
   icons: {
     icon: [
       {

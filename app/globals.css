@@ -2683,12 +2683,14 @@ html:not(.js) .preloader {
 .motion-enhanced .chapter-jersey__video--mobile {
   position: absolute;
   z-index: 2;
-  top: 50%;
+  inset: auto;
+  top: calc(50% - 1.125rem);
   left: 50%;
   display: block;
   width: min(42vw, 33rem);
   height: auto;
   max-height: 72vh;
+  margin: 0;
   object-fit: contain;
   transform: translate(-50%, -50%);
 }
