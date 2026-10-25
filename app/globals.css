@@ -2829,7 +2829,7 @@ html:not(.js) .preloader {
     bottom: 0.75rem;
   }
 
-  .wordmark p.wordmark__mini {
+  .js .wordmark p.wordmark__mini {
     display: none;
   }
 
