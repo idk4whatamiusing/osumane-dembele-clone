@@ -305,9 +305,10 @@ export function ThreeParticleScene({
           const bounds = new THREE.Box3().setFromObject(loadedModel);
           const size = bounds.getSize(new THREE.Vector3());
           const center = bounds.getCenter(new THREE.Vector3());
-          const scale = 2.35 / Math.max(size.x, size.y, size.z, 0.001);
+          const scale = 9.5 / Math.max(size.x, size.y, size.z, 0.001);
           loadedModel.scale.setScalar(scale);
           loadedModel.position.sub(center.multiplyScalar(scale));
+          loadedModel.position.y -= 1.25;
           loadedModel.visible = true;
           fallbackBall.visible = false;
           group.add(loadedModel);

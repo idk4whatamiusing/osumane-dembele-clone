@@ -27,9 +27,11 @@ export function Wordmark({ accent }: WordmarkProps) {
 
     const onScroll = () => {
       const progress = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.5)));
+      const footerTop = document.getElementById("credits")?.getBoundingClientRect().top ?? Infinity;
+      const atFooter = footerTop < window.innerHeight * 0.8;
       hero.style.opacity = String(1 - progress);
       hero.style.transform = `translateY(${-progress * 12}px)`;
-      mini.style.opacity = String(progress);
+      mini.style.opacity = atFooter ? "0" : String(progress);
       mini.style.transform = `translate(-50%, ${(1 - progress) * 8}px)`;
     };
 

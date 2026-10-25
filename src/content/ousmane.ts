@@ -427,6 +427,34 @@ const content: PersonContent = {
       {
         ...image("end-03", "Composition graphique aux formes lumineuses", "webp", 1674, 970),
         caption: "Mouvement"
+      },
+      {
+        ...image("end-04", "Portrait du joueur dans une composition graphique", "webp", 1674, 970),
+        caption: "Mémoire"
+      },
+      {
+        ...image("end-05", "Scène de célébration dans une composition graphique", "webp", 1674, 970),
+        caption: "Éclat"
+      },
+      {
+        ...image("end-06", "Portrait du joueur dans une ambiance dorée", "webp", 1674, 970),
+        caption: "Or"
+      },
+      {
+        ...image("end-07", "Scène de match dans une composition graphique", "webp", 1674, 970),
+        caption: "Terrain"
+      },
+      {
+        ...image("end-08", "Scène de célébration dans une composition sombre", "webp", 1674, 970),
+        caption: "Victoire"
+      },
+      {
+        ...image("end-09", "Portrait du joueur dans une composition graphique", "webp", 1674, 970),
+        caption: "Portrait"
+      },
+      {
+        ...image("end-10", "Composition finale aux reflets dorés", "webp", 1674, 970),
+        caption: "Légende"
       }
     ]
   },

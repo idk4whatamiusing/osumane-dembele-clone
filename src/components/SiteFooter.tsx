@@ -42,7 +42,7 @@ export function SiteFooter({
         variant="footer"
          model={resolveMediaPath(scene.model, profile)}
          hdr={scene.hdr ? resolveMediaPath(scene.hdr, profile) : undefined}
-         textures={scene.textures?.map((texture) => resolveMediaPath(texture, profile))}
+         textures={gallery.map((item) => resolveMediaPath(item.src, profile))}
          particleCount={scene.footerParticles}
          accent={scene.accent}
         fallbackLabel={scene.fallbackLabel}

@@ -512,7 +512,6 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
       if (signature && footer) {
         gsap.set(signature, {
           scale: 0.1,
-          xPercent: -50,
           transformOrigin: "50% 50%"
         });
         gsap.to(signature, {

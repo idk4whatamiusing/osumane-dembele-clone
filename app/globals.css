@@ -1281,11 +1281,10 @@ html:not(.js) .site-nav__track a {
 
 .site-footer__signature {
   position: absolute;
-  z-index: 1;
-  top: 12%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(80vw, 900px);
+  z-index: 12;
+  top: 3.125rem;
+  left: 1.125rem;
+  width: calc(100% - 2.25rem);
   height: auto;
   color: var(--footer-accent, var(--page-accent, #c1b28b));
 }
@@ -1353,6 +1352,46 @@ html:not(.js) .site-nav__track a {
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+/* The reference footer is a full-screen trophy with a ring of ten photos,
+   not a card grid. The WebGL scene supplies the trophy and ring; the DOM
+   gallery remains as the no-JS fallback. */
+.motion-enhanced .site-footer__gallery,
+.motion-enhanced .site-footer__topline {
+  display: none;
+}
+
+.motion-enhanced .site-footer__credits {
+  right: auto;
+  bottom: 1.125rem;
+  left: 1.125rem;
+  z-index: 12;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.motion-enhanced .site-footer__credits dl {
+  gap: 1rem;
+}
+
+.motion-enhanced .site-footer__credits dd,
+.motion-enhanced .site-footer__credits > a {
+  display: none;
+}
+
+.motion-enhanced .audio-control {
+  right: 1.125rem;
+  bottom: 1.125rem;
+  gap: 0;
+  z-index: 12;
+}
+
+.motion-enhanced .audio-control__details {
+  display: none;
 }
 
 @keyframes grain-shift {
@@ -2866,6 +2905,19 @@ html:not(.js) .preloader {
 
   .wordmark__hero {
     padding: 0 0.75rem;
+  }
+
+  .motion-enhanced .audio-control {
+    top: 8.2rem;
+    right: 50%;
+    bottom: auto;
+    left: auto;
+    transform: translateX(50%);
+  }
+
+  .motion-enhanced .audio-control__button {
+    width: 5.5rem;
+    height: 5.5rem;
   }
 
   /* The hero scene is decorative on touch screens. It must never swallow the
