@@ -79,7 +79,7 @@ The generated manifest is `public/assets/reference/manifest.json`. The current c
 
 Use `npm run assets:download -- --skip-frames` for a faster media-only refresh, `--force` to replace existing files, or `--concurrency=2` to reduce network pressure.
 
-Reference media must not be published. The Worker build runs `scripts/prepare-worker-assets.mjs`, which removes every reference directory from `.open-next/assets` and fails if any remains.
+Reference media must not be published. The Worker build copies the pre-rendered `/` document into `.open-next/assets` so the root is served as static HTML without streamed RSC injection, then strips the heavy reference video, audio, and frame directories. Deploy only owned or licensed media for a public Worker.
 
 Reusable deployable fallbacks are generated in `public/assets/core/` by:
 
