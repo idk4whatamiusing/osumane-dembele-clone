@@ -2807,9 +2807,9 @@ html:not(.js) .preloader {
   }
 
   .motion-enhanced .chapter-story__stats {
-    inset: 1.125rem;
+    inset: 0.75rem 0.75rem 3.8125rem;
     justify-content: flex-end;
-    gap: 1.5rem;
+    gap: 0;
   }
 
   .motion-enhanced .chapter-story__stats > div {
@@ -2822,7 +2822,7 @@ html:not(.js) .preloader {
 
   .motion-enhanced .chapter-story__stats dd {
     font-size: 31vw;
-    line-height: 0.8;
+    line-height: 1;
   }
 
   .wordmark {

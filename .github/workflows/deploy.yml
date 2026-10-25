@@ -70,6 +70,36 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler deploy
 
+      - name: Smoke test Worker
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          WORKER_URL: https://osumane-dembele-clone.dsjzcjmsh6.workers.dev
+        run: |
+          set -euo pipefail
+          page="/tmp/osumane-worker-smoke.html"
+          curl --fail --silent --show-error --location --retry 3 --retry-delay 2 \
+            "$WORKER_URL/?smoke=$GITHUB_SHA" -o "$page"
+          test -s "$page"
+          grep -q "Ousmane Dembélé" "$page"
+          grep -Eq '<script[^>]+src="/_next/static/' "$page"
+          if grep -Eq '<path[^>]*d="[^"]*<script' "$page"; then
+            echo "Malformed streamed SVG attribute found in Worker HTML" >&2
+            exit 1
+          fi
+          for asset in \
+            /assets/reference/fonts/Doner-BlackText.otf \
+            /assets/reference/images/jersey-evreux.webp \
+            /assets/reference/video/chapter-01-jersey-data.mp4 \
+            /assets/reference/audio/hold-to-play.mp3; do
+            http_code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+              --retry 3 --retry-delay 2 "$WORKER_URL$asset")
+            if [ "$http_code" != "200" ]; then
+              echo "Worker asset failed: $asset (HTTP $http_code)" >&2
+              exit 1
+            fi
+          done
+          echo "Worker smoke test passed"
+
       - name: Summary
         run: |
           if [ "${{ steps.creds.outputs.ready }}" = "true" ]; then
