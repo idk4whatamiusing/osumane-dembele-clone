@@ -291,7 +291,7 @@ function FooterParticleScene({
           texture.colorSpace = THREE.SRGBColorSpace;
           loadedTextures.push(texture);
           const panel = new THREE.Mesh(
-            new THREE.PlaneGeometry(mobile ? 3.4 : 4.6, mobile ? 2.1 : 2.8, 8, 1),
+            new THREE.PlaneGeometry(mobile ? 3.7 : 4.9, mobile ? 2.2 : 2.7, 8, 1),
             new THREE.MeshStandardMaterial({
               map: texture,
               transparent: true,
@@ -302,7 +302,7 @@ function FooterParticleScene({
             })
           );
           const angle = (index / Math.max(textures.length, 1)) * Math.PI * 2;
-          const radius = mobile ? 6.4 : 8.2;
+          const radius = mobile ? 6.4 : 8.0;
           panel.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
           panel.rotation.set(0.08, -angle + Math.PI / 2, 0);
           panelRing.add(panel);
