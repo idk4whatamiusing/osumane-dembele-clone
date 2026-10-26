@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import Home from "@/app/page";
 import RootLayout from "@/app/layout";
+import NotFound from "@/app/not-found";
 import { referencePerson } from "@/src/content/ousmane";
 
 const count = (source: string, pattern: RegExp): number => source.match(pattern)?.length ?? 0;
@@ -38,6 +39,14 @@ describe("semantic server rendering", () => {
     expect(markup).toContain("<html lang=\"fr\">");
     expect(markup).toContain("class=\"skip-link\"");
     expect(markup).toContain("href=\"#content\"");
+  });
+
+  it("renders the hidden 404 game", () => {
+    const markup = renderToStaticMarkup(createElement(NotFound));
+    expect(markup).toContain("back in the game");
+    expect(markup).toContain("not-found__cage");
+    expect(markup).toContain("not-found__ball");
+    expect(markup).toContain("meme-1.mp4");
   });
 });
 

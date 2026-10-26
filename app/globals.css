@@ -2964,3 +2964,241 @@ html:not(.js) .preloader {
     pointer-events: none;
   }
 }
+
+/* ==========================================================================
+   Hidden 404 / HOLD ME page
+   ========================================================================== */
+
+.not-found {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  background: #fffcf5;
+  color: #0d0d0d;
+  font-family: Doner, "Helvetica Neue", Arial, sans-serif;
+  isolation: isolate;
+  user-select: none;
+}
+
+.not-found__grain {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  background-image: url("/assets/reference/images/grain.webp");
+  background-repeat: repeat;
+  background-size: 15rem 16.875rem;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.not-found__pitch {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 36.8%;
+  color: #c1b28b;
+  pointer-events: none;
+}
+
+.not-found__pitch svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.not-found__title {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0 2vw;
+  overflow: hidden;
+  color: #c1b28b;
+  font-family: Being, Impact, sans-serif;
+  font-size: 8.9vw;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 0.8;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.not-found__word {
+  display: inline-block;
+}
+
+.not-found__word + .not-found__word {
+  margin-left: 0.1em;
+}
+
+.not-found__letter {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.not-found__link {
+  position: absolute;
+  z-index: 5;
+  top: 13.111%;
+  left: 50%;
+  color: #0d0d0d;
+  width: 80px;
+  font-size: 0.45rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.1;
+  text-align: center;
+  text-decoration: none;
+  text-transform: lowercase;
+  transform: translateX(-50%);
+}
+
+.not-found__cage {
+  position: absolute;
+  z-index: 3;
+  top: 39.333%;
+  left: 50%;
+  width: 40vw;
+  aspect-ratio: 586 / 220;
+  color: #c1b28b;
+  transform: translateX(-50%);
+}
+
+.not-found__cage-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.not-found__meme {
+  position: absolute;
+  z-index: 3;
+  width: 11.805%;
+  margin: 0;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.not-found__meme img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.not-found__meme--1 {
+  top: 0;
+  left: 0;
+}
+
+.not-found__meme--2 {
+  top: 0;
+  left: 44.097%;
+}
+
+.not-found__meme--3 {
+  top: 0;
+  left: 88.368%;
+}
+
+.not-found__meme--4 {
+  top: 62.5%;
+  left: 0;
+}
+
+.not-found__meme--5 {
+  top: 59.722%;
+  left: 88.368%;
+}
+
+.not-found__ball {
+  position: absolute;
+  z-index: 6;
+  top: 76%;
+  left: 50%;
+  width: 5vw;
+  height: 5vw;
+  margin-left: -2.5vw;
+  cursor: grab;
+  touch-action: none;
+}
+
+.not-found__ball:active {
+  cursor: grabbing;
+}
+
+.not-found__ball img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.not-found__video-wrap {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(255, 252, 245, 0.9);
+}
+
+.not-found__video-wrap.is-open {
+  display: grid;
+}
+
+.not-found__video {
+  display: none;
+  width: auto;
+  max-width: 80vw;
+  max-height: 80vh;
+}
+
+.not-found__video.is-playing {
+  display: block;
+}
+
+html.js .not-found__title {
+  opacity: 0;
+}
+
+html.js .not-found__letter {
+  opacity: 0;
+}
+
+html.js .not-found__link,
+html.js .not-found__cage,
+html.js .not-found__pitch,
+html.js .not-found__ball {
+  opacity: 0;
+}
+
+html.js .not-found__meme {
+  opacity: 0;
+}
+
+@media (max-width: 991px) {
+  .not-found__title {
+    font-size: 8.8vw;
+    padding: 0 2vw;
+  }
+
+  .not-found__link {
+    top: 51.303%;
+    width: 107px;
+    font-size: 0.6rem;
+  }
+
+  .not-found__pitch,
+  .not-found__cage,
+  .not-found__ball {
+    display: none;
+  }
+}

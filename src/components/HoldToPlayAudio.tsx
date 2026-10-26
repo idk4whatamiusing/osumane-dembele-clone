@@ -55,6 +55,9 @@ export function HoldToPlayAudio({
       if (progress >= 1 && !completed.current) {
         completed.current = true;
         window.dispatchEvent(new CustomEvent("osumane:audio-complete"));
+        // The reference opens its hidden 404 page after a complete hold.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.assign("/%C3%A7asentleroro");
       }
       progressFrame.current = window.requestAnimationFrame(animate);
     };
