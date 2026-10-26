@@ -41,7 +41,10 @@ export default function Home() {
         />
         <Wordmark accent={person.scene.accent} />
         <GrainVeil />
-        <GlobalFrameStage profile={profile} />
+        <GlobalFrameStage
+          profile={profile}
+          sequences={person.chapters.map((chapter) => chapter.frameSequence)}
+        />
         <main id="content">
           <Hero person={person} profile={profile} />
           <Intro

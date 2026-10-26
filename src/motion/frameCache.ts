@@ -41,9 +41,25 @@ export function getCacheEntry(key: string): CacheEntry | undefined {
   return cache.get(key);
 }
 
+/**
+ * Marks a chapter as recently used without changing its frames.
+ *
+ * The cache is an LRU. The active chapter must be refreshed whenever it is
+ * touched, otherwise preloading the following chapter can evict the chapter
+ * that is currently on screen.
+ */
+export function touchCacheEntry(key: string): void {
+  const entry = cache.get(key);
+  if (!entry) return;
+  cache.delete(key);
+  cache.set(key, entry);
+}
+
 /** Registers a chapter and releases the oldest ones when the limit is hit. */
 export function trackCacheEntry(entry: CacheEntry): void {
-  cache.set(entry.sequence.basePath, entry);
+  const key = entry.sequence.basePath;
+  cache.delete(key);
+  cache.set(key, entry);
   while (cache.size > MAX_CACHED_SEQUENCES) {
     const oldest = cache.keys().next();
     if (oldest.done) break;

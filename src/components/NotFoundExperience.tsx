@@ -44,14 +44,20 @@ export function NotFoundExperience() {
     const start = { x: 0, y: 0 };
     let hasHit = false;
     let currentVideo: HTMLVideoElement | null = null;
+    let currentEnded: (() => void) | null = null;
     let draggables: Draggable[] = [];
 
     const stopVideo = () => {
-      if (!currentVideo) return;
-      currentVideo.pause();
-      currentVideo.style.display = "none";
-      currentVideo.currentTime = 0;
-      currentVideo.muted = true;
+      const video = currentVideo;
+      if (!video) return;
+
+      if (currentEnded) video.removeEventListener("ended", currentEnded);
+      currentEnded = null;
+      video.pause();
+      video.style.display = "none";
+      video.currentTime = 0;
+      video.muted = true;
+      video.loop = true;
       currentVideo = null;
       videoWrap.classList.remove("is-open");
     };
@@ -65,14 +71,18 @@ export function NotFoundExperience() {
         item.style.display = "none";
         item.pause();
         item.currentTime = 0;
+        item.loop = true;
       });
 
       currentVideo = video;
       video.style.display = "block";
       video.muted = false;
       video.volume = 0.3;
+      // The reference plays a meme once, then restores the 404 screen.
+      video.loop = false;
       videoWrap.classList.add("is-open");
-      video.addEventListener("ended", stopVideo, { once: true });
+      currentEnded = () => stopVideo();
+      video.addEventListener("ended", currentEnded, { once: true });
       void video.play().catch(() => {
         // Browsers can still reject audible playback in some environments.
         // The clip remains visible, which is the important part of the hit.
