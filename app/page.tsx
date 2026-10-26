@@ -4,6 +4,7 @@ import type { AssetProfile } from "@/src/content/schema";
 import { contentForProfile } from "@/src/lib/media";
 import { ChapterNav } from "@/src/components/ChapterNav";
 import { ChapterTrack } from "@/src/components/ChapterTrack";
+import { GlobalFrameStage } from "@/src/components/GlobalFrameStage";
 import { GrainVeil } from "@/src/components/GrainVeil";
 import { Hero } from "@/src/components/Hero";
 import { Intro } from "@/src/components/Intro";
@@ -40,6 +41,7 @@ export default function Home() {
         />
         <Wordmark accent={person.scene.accent} />
         <GrainVeil />
+        <GlobalFrameStage profile={profile} />
         <main id="content">
           <Hero person={person} profile={profile} />
           <Intro

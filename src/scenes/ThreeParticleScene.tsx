@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { HeroParticleScene } from "./HeroParticleScene";
 
 interface ThreeParticleSceneProps {
   variant: "hero" | "footer";
@@ -15,6 +16,19 @@ interface ThreeParticleSceneProps {
   accent: string;
   onReady?: () => void;
   onFail?: (reason: string) => void;
+}
+
+export function ThreeParticleScene(props: ThreeParticleSceneProps) {
+  if (props.variant === "hero") {
+    return (
+      <HeroParticleScene
+        accent={props.accent}
+        onReady={props.onReady}
+        onFail={props.onFail}
+      />
+    );
+  }
+  return <FooterParticleScene {...props} />;
 }
 
 function disposeMaterial(material: THREE.Material): void {
@@ -58,7 +72,7 @@ function randomUnitVector(target: THREE.Vector3): THREE.Vector3 {
   );
 }
 
-export function ThreeParticleScene({
+function FooterParticleScene({
   variant,
   model,
   hdr,
@@ -123,6 +137,10 @@ export function ThreeParticleScene({
     scene.add(group);
     scene.add(panelRing);
     if (variant === "hero") group.position.set(0.02, 0.36, 0);
+    if (variant === "footer") {
+      panelRing.position.y = mobile ? -3.8 : -1.3;
+      panelRing.rotation.x = mobile ? 0.32 : 0.38;
+    }
 
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.25 : 1.5));
@@ -273,19 +291,20 @@ export function ThreeParticleScene({
           texture.colorSpace = THREE.SRGBColorSpace;
           loadedTextures.push(texture);
           const panel = new THREE.Mesh(
-            new THREE.PlaneGeometry(3.5, 2.4, 8, 1),
+            new THREE.PlaneGeometry(mobile ? 3.4 : 4.6, mobile ? 2.1 : 2.8, 8, 1),
             new THREE.MeshStandardMaterial({
               map: texture,
               transparent: true,
-              opacity: 0.72,
+              opacity: 1,
               side: THREE.DoubleSide,
-              roughness: 0.72,
-              metalness: 0.08
+              roughness: 0.62,
+              metalness: 0.06
             })
           );
           const angle = (index / Math.max(textures.length, 1)) * Math.PI * 2;
-          panel.position.set(Math.cos(angle) * 7.1, Math.sin(angle * 1.7) * 1.8, Math.sin(angle) * 7.1);
-          panel.rotation.set(0.18, -angle + Math.PI / 2, Math.sin(angle) * 0.08);
+          const radius = mobile ? 6.4 : 8.2;
+          panel.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+          panel.rotation.set(0.08, -angle + Math.PI / 2, 0);
           panelRing.add(panel);
         });
       });
@@ -305,10 +324,10 @@ export function ThreeParticleScene({
           const bounds = new THREE.Box3().setFromObject(loadedModel);
           const size = bounds.getSize(new THREE.Vector3());
           const center = bounds.getCenter(new THREE.Vector3());
-          const scale = 9.5 / Math.max(size.x, size.y, size.z, 0.001);
+          const scale = (mobile ? 7.6 : 10.5) / Math.max(size.x, size.y, size.z, 0.001);
           loadedModel.scale.setScalar(scale);
           loadedModel.position.sub(center.multiplyScalar(scale));
-          loadedModel.position.y -= 1.25;
+          loadedModel.position.y -= mobile ? 5.0 : 2.4;
           loadedModel.visible = true;
           fallbackBall.visible = false;
           group.add(loadedModel);
@@ -457,7 +476,8 @@ export function ThreeParticleScene({
           renderer.domElement.style.opacity = `${1 - progress * 0.88}`;
         } else {
           panelRing.rotation.y = elapsed * 0.08 + pointer.x * 0.12;
-          panelRing.rotation.x = Math.sin(elapsed * 0.16) * 0.05 - pointer.y * 0.05;
+          panelRing.rotation.x =
+            (mobile ? 0.32 : 0.38) + Math.sin(elapsed * 0.16) * 0.05 - pointer.y * 0.05;
           if (loadedModel?.visible) {
             loadedModel.rotation.y = elapsed * 0.18;
             loadedModel.rotation.x = Math.sin(elapsed * 0.35) * 0.1;

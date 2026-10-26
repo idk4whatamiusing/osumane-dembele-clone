@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 export interface ChapterNavItem {
   id: string;
@@ -26,33 +26,133 @@ interface ChapterNavProps {
 export function ChapterNav({ name, items, navigationLabel }: ChapterNavProps) {
   const [active, setActive] = useState<string | null>(null);
   const [palette, setPalette] = useState<{ idle: string; active: string } | null>(null);
+  const lastState = useRef("");
 
   useEffect(() => {
-    const sections = [
-      document.getElementById("introduction"),
-      ...items.map((item) => document.getElementById(item.id))
-    ].filter((section): section is HTMLElement => Boolean(section));
+    const intro = document.getElementById("introduction");
+    const footer = document.getElementById("credits");
+    const sections = items
+      .map((item) => document.getElementById(item.id))
+      .filter((section): section is HTMLElement => Boolean(section));
+    if (!sections.length) return;
 
-    const read = (section: HTMLElement) => {
-      const styles = getComputedStyle(section);
-      const idle = styles.getPropertyValue("--nav-color").trim();
-      const highlight = styles.getPropertyValue("--nav-active-color").trim();
-      if (idle) setPalette({ idle, active: highlight || idle });
+    const tracks = sections
+      .map((section) =>
+        section.querySelector<HTMLElement>("[data-chapter-track]")
+      )
+      .filter((track): track is HTMLElement => Boolean(track));
+
+    type ChapterNavState = {
+      id: string;
+      top: number;
+      end: number;
+      idle: string;
+      highlight: string;
     };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (!visible) return;
-        setActive(visible.target.id);
-        read(visible.target as HTMLElement);
-      },
-      { rootMargin: "-40% 0px -45%", threshold: [0, 0.05, 0.5, 1] }
-    );
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
+    let states: ChapterNavState[] = [];
+    let introTop = 0;
+    let footerTop = Number.POSITIVE_INFINITY;
+
+    const measure = () => {
+      introTop = intro
+        ? intro.getBoundingClientRect().top + window.scrollY
+        : 0;
+      footerTop = footer
+        ? footer.getBoundingClientRect().top + window.scrollY
+        : document.documentElement.scrollHeight;
+      states = sections.map((section) => {
+        const track = section.querySelector<HTMLElement>("[data-chapter-track]");
+        const top = section.getBoundingClientRect().top + window.scrollY;
+        const distance = track
+          ? Math.max(0, track.scrollWidth - window.innerWidth)
+          : 0;
+        const styles = getComputedStyle(section);
+        const idle = styles.getPropertyValue("--nav-color").trim() || "#0d0d0d";
+        const highlight =
+          styles.getPropertyValue("--nav-active-color").trim() || idle;
+        return {
+          id: section.id,
+          top,
+          end: top + distance + 3000 + 5,
+          idle,
+          highlight
+        };
+      });
+    };
+
+    const update = () => {
+      const y = window.scrollY;
+      let nextActive: string | null = null;
+      let nextPalette: { idle: string; active: string } | null = null;
+
+      if (y < introTop + 100) {
+        nextPalette = null;
+      } else if (y < states[0].top + 15) {
+        nextPalette = { idle: "#fffcf5", active: "#fffcf5" };
+      } else if (y >= footerTop - window.innerHeight * 0.47) {
+        nextPalette = null;
+      } else {
+        const last = states[states.length - 1];
+        if (y >= last.end) {
+          nextPalette = { idle: last.idle, active: last.highlight };
+        } else {
+          let index = 0;
+          for (let i = 0; i < states.length; i += 1) {
+            if (y >= states[i].end) index = i + 1;
+          }
+          index = Math.min(index, states.length - 1);
+          nextActive = window.innerWidth <= 991 ? null : states[index].id;
+          nextPalette = {
+            idle: states[index].idle,
+            active: states[index].highlight
+          };
+        }
+      }
+
+      const key = `${nextActive || ""}|${nextPalette?.idle || ""}|${nextPalette?.active || ""}`;
+      if (key === lastState.current) return;
+      lastState.current = key;
+      setActive(nextActive);
+      setPalette(nextPalette);
+    };
+
+    let frame = 0;
+    const schedule = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        update();
+      });
+    };
+    const onResize = () => {
+      measure();
+      update();
+    };
+
+    let disposed = false;
+    const remeasure = () => {
+      if (disposed) return;
+      measure();
+      update();
+    };
+    const observer = new ResizeObserver(remeasure);
+    tracks.forEach((track) => observer.observe(track));
+    const settleTimer = window.setTimeout(remeasure, 800);
+    void document.fonts?.ready.then(remeasure).catch(() => undefined);
+
+    measure();
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => {
+      disposed = true;
+      window.clearTimeout(settleTimer);
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", onResize);
+    };
   }, [items]);
 
   return (

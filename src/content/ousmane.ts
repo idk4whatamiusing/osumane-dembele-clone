@@ -90,7 +90,7 @@ const chapters: Chapter[] = [
     intro:
       "Né le 15 mai 1997 à Vernon,\nOusmane Dembélé grandit à Évreux.\nC’est ici, sur les terrains du quartier\net dans les salles de futsal, qu’il forge\nsa créativité et sa vitesse d’exécution.",
     body: [
-      "Un jeune prodige qui joue avec l’audace d’un enfant et la vision d’un futur champion. À Évreux, il apprend à oser, à improviser, à créer. L’école du jeu libre. Celle qui fera toute la différence plus tard."
+      "Un jeune prodige qui joue avec l’audace d’un enfant et la vision d’un futur champion.\n\nÀ Évreux, il apprend à oser, à improviser, à créer.\nL’école du jeu libre. Celle qui fera toute la différence plus tard."
     ],
     accent: "#0d0d0d",
     foreground: "#fffcf5",

@@ -109,19 +109,26 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
       document.documentElement.classList.remove("motion-pending");
 
       // --- The hero ------------------------------------------------------
-      const hero = document.querySelector<HTMLElement>(".hero");
-      if (hero) {
-        gsap.to(hero, {
-          "--hero-veil": 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: () => `+=${Math.round(window.innerHeight * 0.55)}`,
-            scrub: 0.4,
-            invalidateOnRefresh: true
+      // The reference lets the cream body show through the opening screen,
+      // then fades a dark layer in behind it as the sphere explodes. The
+      // second half of that transition uses the same easeOutQuad curve.
+      const main = document.querySelector<HTMLElement>("main");
+      if (main) {
+        gsap.fromTo(
+          main,
+          { backgroundColor: "rgba(0, 0, 0, 0)" },
+          {
+            backgroundColor: "#0d0d0d",
+            ease: "power1.out",
+            scrollTrigger: {
+              trigger: main,
+              start: () => window.innerHeight * 0.3,
+              end: () => window.innerHeight * 0.5,
+              scrub: true,
+              invalidateOnRefresh: true
+            }
           }
-        });
+        );
       }
 
       gsap.fromTo(
@@ -146,6 +153,44 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
             once: true
           }
         });
+
+        // The first two words start centred as a group. As the intro settles,
+        // the group travels to the left gutter while BRILLER travels to the
+        // right, exactly like the reference's margin tween.
+        const title = intro.querySelector<HTMLElement>(".intro__title");
+        const group = intro.querySelector<HTMLElement>(".intro__group");
+        const lastWord = intro.querySelector<HTMLElement>(".intro__word--last");
+        if (
+          title &&
+          group &&
+          lastWord &&
+          window.matchMedia("(min-width: 992px)").matches
+        ) {
+          const gap = Number.parseFloat(getComputedStyle(title).gap) || 0;
+          const endMargin = () =>
+            Math.max(
+              0,
+              title.clientWidth -
+                group.offsetWidth -
+                lastWord.offsetWidth -
+                gap
+            );
+          gsap.fromTo(
+            group,
+            { marginRight: 0 },
+            {
+              marginRight: endMargin,
+              ease: "none",
+              scrollTrigger: {
+                trigger: intro,
+                start: "top 33.3%",
+                end: "top 22.2%",
+                scrub: 1,
+                invalidateOnRefresh: true
+              }
+            }
+          );
+        }
 
         const copy = intro.querySelector<HTMLElement>(".intro__copy");
         const paragraphWords = Array.from(
@@ -389,7 +434,9 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
           const items = Array.from(
             galleryStrip.querySelectorAll<HTMLElement>("[data-gallery-item]")
           );
-          gsap.set(items, { xPercent: 50 });
+          gsap.set(items, {
+            xPercent: (index) => (index < 2 ? 50 : 0)
+          });
           gsap.set(galleryStrip, { xPercent: 20 });
 
           const stripTrigger = {
@@ -405,7 +452,7 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
             scrollTrigger: { ...stripTrigger, scrub: 3 }
           });
           gsap.to(items, {
-            xPercent: -50,
+            xPercent: (index) => (index < 2 ? -50 : -100),
             ease: "power1.out",
             stagger: 0.05,
             scrollTrigger: { ...stripTrigger, scrub: 2 }

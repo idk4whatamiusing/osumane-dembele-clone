@@ -24,7 +24,7 @@ describe("semantic server rendering", () => {
     expect(markup).toContain("Crédits");
     expect(markup).toContain("chapter-jersey__video--desktop");
     expect(markup).toContain("chapter-jersey__video--mobile");
-    expect(markup).not.toContain("data-global-frame-stage");
+    expect(markup).toContain("data-global-frame-stage");
     expect(markup).toContain("data-frame-sequence");
   });
 

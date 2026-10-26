@@ -58,6 +58,8 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
     let activeSequence: FrameSequence | null = null;
     let activeChapter: string | null = null;
     let currentFrame = 0;
+    let ready = false;
+    let wasActive = false;
     let opacity = 0;
     let yPercent = -50;
     let scrollVelocity = 0;
@@ -119,7 +121,7 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
       const delta = lastTime ? Math.min(0.05, (time - lastTime) / 1000) : 0;
       lastTime = time;
       scrollVelocity *= 0.9;
-      if (activeSequence && activeChapter) {
+      if (activeSequence && activeChapter && ready) {
         const speed = BASE_SPEED + Math.abs(scrollVelocity) / 3;
         currentFrame += speed * delta * scrollDirection;
         draw();
@@ -133,6 +135,7 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
       activeSequence = sequence;
       activeChapter = chapterId;
       currentFrame = 0;
+      ready = false;
 
       let entry = getCacheEntry(sequence.basePath);
       if (!entry || entry.sequence !== sequence) {
@@ -141,6 +144,7 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
       }
 
       if (entry.frames.length >= sequence.frameCount) {
+        ready = true;
         draw();
         return;
       }
@@ -186,6 +190,10 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
         entry.frames.push(...batch);
         draw();
       }
+      if (!disposed && !controller.signal.aborted) {
+        ready = true;
+        draw();
+      }
     };
 
     const closeFrames = (frames: Array<Decoded | undefined>) => {
@@ -210,13 +218,22 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
       opacity = next.opacity;
       yPercent = next.yPercent;
       if (next.active && next.sequence && next.chapterId) {
-        if (next.chapterId !== activeChapter || next.sequence !== activeSequence) {
+        const becameActive = !wasActive;
+        wasActive = true;
+        if (becameActive) currentFrame = 0;
+        if (
+          becameActive ||
+          next.chapterId !== activeChapter ||
+          next.sequence !== activeSequence
+        ) {
           void load(next.sequence, next.chapterId);
         }
       } else if (!next.active) {
+        wasActive = false;
         activeChapter = null;
         activeSequence = null;
         currentFrame = 0;
+        ready = false;
       }
       draw();
     });

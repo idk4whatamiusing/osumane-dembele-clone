@@ -9,11 +9,11 @@ interface WordmarkProps {
 }
 
 /**
- * The wordmark that sits at the bottom of the viewport.
+ * The wordmark pinned to the bottom of the viewport.
  *
- * The reference ships this as a vector mark, not live type. Using the same
- * paths keeps the letterforms and the 140 × 10 mini mark identical to the
- * source instead of approximating them with the display font.
+ * The reference shrinks this single mark from the full page width to 10% as
+ * the hero dissolves, then leaves the small mark in place for the rest of the
+ * page. Using the same paths keeps the letterforms identical to the source.
  */
 export function Wordmark({ accent }: WordmarkProps) {
   const root = useRef<HTMLDivElement>(null);
@@ -21,18 +21,21 @@ export function Wordmark({ accent }: WordmarkProps) {
   useEffect(() => {
     const element = root.current;
     if (!element) return;
-    const hero = element.querySelector<HTMLElement>("[data-wordmark-hero]");
-    const mini = element.querySelector<HTMLElement>("[data-wordmark-mini]");
-    if (!hero || !mini) return;
+    const mark = element.querySelector<SVGElement>(".wordmark__svg");
+    if (!mark) return;
 
     const onScroll = () => {
-      const progress = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.5)));
-      const footerTop = document.getElementById("credits")?.getBoundingClientRect().top ?? Infinity;
-      const atFooter = footerTop < window.innerHeight * 0.8;
-      hero.style.opacity = String(1 - progress);
-      hero.style.transform = `translateY(${-progress * 12}px)`;
-      mini.style.opacity = atFooter ? "0" : String(progress);
-      mini.style.transform = `translate(-50%, ${(1 - progress) * 8}px)`;
+      const progress = Math.min(
+        1,
+        Math.max(0, window.scrollY / (window.innerHeight * 0.5))
+      );
+      if (window.innerWidth <= 991) {
+        mark.style.width = "100%";
+        mark.style.opacity = String(1 - progress);
+        return;
+      }
+      mark.style.width = `${100 - progress * 90}%`;
+      mark.style.opacity = "1";
     };
 
     onScroll();
@@ -44,20 +47,6 @@ export function Wordmark({ accent }: WordmarkProps) {
     };
   }, []);
 
-  const mark = (
-    <svg
-      viewBox={loaderSignatureViewBox}
-      className="wordmark__svg"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      focusable="false"
-    >
-      {loaderSignaturePaths.map((d, index) => (
-        <path key={index} d={d} fill="currentColor" />
-      ))}
-    </svg>
-  );
-
   return (
     <div
       ref={root}
@@ -67,10 +56,17 @@ export function Wordmark({ accent }: WordmarkProps) {
       data-wordmark="true"
     >
       <div className="wordmark__hero" data-wordmark-hero>
-        {mark}
-      </div>
-      <div className="wordmark__mini" data-wordmark-mini>
-        {mark}
+        <svg
+          viewBox={loaderSignatureViewBox}
+          className="wordmark__svg"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          focusable="false"
+        >
+          {loaderSignaturePaths.map((d, index) => (
+            <path key={index} d={d} fill="currentColor" />
+          ))}
+        </svg>
       </div>
     </div>
   );

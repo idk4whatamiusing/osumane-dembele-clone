@@ -200,16 +200,20 @@ export function ChapterTrack({ chapter, index, profile, labels }: ChapterTrackPr
               </h3>
             </div>
             <div className="chapter-story__bottom">
-              <div className="chapter-story__copy">
-                <p>{chapter.intro}</p>
-              </div>
               <h3 className="chapter-display chapter-story__tail">
                 {chapter.storyHeadline.tail}
               </h3>
             </div>
           </div>
 
+          <div className="chapter-story__copy">
+            <p>{chapter.intro}</p>
+          </div>
+
           <div className="chapter-story__overlay" data-story-overlay>
+            <p className="chapter-story__body">
+              {chapter.body.join("\n\n")}
+            </p>
             <div className="chapter-story__overlay-heading">
               <p className="chapter-story__overlay-title">
                 {chapter.overlay.title}
