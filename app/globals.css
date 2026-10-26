@@ -3211,3 +3211,169 @@ html.js .not-found__meme {
     display: none;
   }
 }
+
+/* --- HOLD ME: the reference circular hold control ------------------------ */
+
+.audio-control {
+  gap: 0;
+}
+
+.audio-control__button {
+  position: relative;
+  display: flex;
+  width: 5.625rem;
+  height: 5.625rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #0d0d0d;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: none;
+}
+
+.audio-control__button:hover {
+  background: transparent;
+  transform: none;
+}
+
+.audio-control__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.audio-control__button[aria-pressed="true"] {
+  animation: hold-pulse 0.3s ease-out infinite alternate;
+}
+
+.audio-control__spinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(204, 191, 159, 0.59), #ccbf9f);
+  opacity: 1;
+  animation: hold-spin 5s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+  transition: opacity 0.3s ease;
+}
+
+.audio-control__spinner::after {
+  position: absolute;
+  inset: 0.9px;
+  border-radius: 50%;
+  background: #fffcf5;
+  content: "";
+}
+
+.audio-control__button[aria-pressed="true"] .audio-control__spinner {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+.audio-control__progress {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.audio-control__progress svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform: none;
+}
+
+.audio-control__progress .audio-control__progress-value {
+  fill: none;
+  stroke: #ccbf9f;
+  stroke-width: 2.5;
+  stroke-dasharray: 315.73;
+  stroke-dashoffset: var(--hold-offset, 315.73);
+}
+
+.audio-control__button .audio-control__label {
+  position: relative;
+  z-index: 3;
+  max-width: 4.5rem;
+  font-size: 0.45rem;
+  font-weight: 900;
+  letter-spacing: normal;
+  line-height: 1.1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.audio-control__details {
+  display: none;
+}
+
+@keyframes hold-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hold-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+@media (max-width: 991px) {
+  .audio-control,
+  .motion-enhanced .audio-control {
+    top: 8.625rem;
+    right: 50%;
+    bottom: auto;
+    left: auto;
+    transform: translateX(50%);
+  }
+
+  .audio-control__button,
+  .motion-enhanced .audio-control__button {
+    width: 6.375rem;
+    height: 6.375rem;
+  }
+
+  .audio-control__button .audio-control__label {
+    font-size: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audio-control__spinner {
+    animation-duration: 12s;
+  }
+
+  .audio-control__button[aria-pressed="true"] {
+    animation: none;
+    transform: scale(1.04);
+  }
+}
+
+/* The reference footer is a flat cream field; the trophy scene supplies the
+   light. Remove the extra DOM glow that made the clone footer warmer. */
+.site-footer::after {
+  display: none;
+}
+
+.motion-enhanced .site-footer {
+  padding: 3.15rem 1.125rem 1.125rem;
+}
+
+.scene-enhancement--footer {
+  z-index: 0;
+}
+
+@media (max-width: 991px) {
+  .motion-enhanced .site-footer__credits {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+}

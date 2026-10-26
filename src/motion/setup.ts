@@ -19,15 +19,24 @@ function readSequence(shell: HTMLElement): FrameSequence | null {
 }
 
 function playFootage(shell: HTMLElement, playing: boolean): void {
-  shell
-    .querySelectorAll<HTMLVideoElement>(".chapter-story__video")
-    .forEach((video) => {
-      if (playing) {
-        void video.play().catch(() => undefined);
-        return;
-      }
-      video.pause();
-    });
+  const videos = Array.from(
+    shell.querySelectorAll<HTMLVideoElement>(".chapter-story__video")
+  );
+  // The mobile jersey is a separate webm. Browsers pause off-screen videos
+  // after autoplay, so it has to be explicitly resumed with its chapter.
+  if (window.innerWidth <= 991) {
+    videos.push(
+      ...shell.querySelectorAll<HTMLVideoElement>(".chapter-jersey__video--mobile")
+    );
+  }
+  videos.forEach((video) => {
+    if (playing) {
+      video.muted = true;
+      void video.play().catch(() => undefined);
+      return;
+    }
+    video.pause();
+  });
 }
 
 function waitForLoader(): Promise<void> {
@@ -236,6 +245,11 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
 
       // --- Chapters ------------------------------------------------------
       const shells = gsap.utils.toArray<HTMLElement>(".chapter-shell");
+      // Only the chapter that currently owns the viewport may drive the
+      // global canvas. Adjacent pinned triggers overlap for a few pixels;
+      // without this guard an old chapter's onLeave can hide the stage after
+      // the new chapter has already shown it.
+      let activeStageChapter: string | null = null;
 
       shells.forEach((shell) => {
         const track = shell.querySelector<HTMLElement>("[data-chapter-track]");
@@ -288,12 +302,24 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
 
         const stage = { opacity: 0, yPercent: -50 };
         const publishStage = () => {
+          if (activeStageChapter !== shell.id) return;
           publishFrameStage({
             chapterId: shell.id,
             sequence,
             opacity: stage.opacity,
             yPercent: stage.yPercent,
-            active: stage.opacity > 0.001
+            active: true
+          });
+        };
+        const releaseStage = (yPercent = stage.yPercent) => {
+          if (activeStageChapter !== shell.id) return;
+          activeStageChapter = null;
+          publishFrameStage({
+            chapterId: shell.id,
+            sequence,
+            opacity: 0,
+            yPercent,
+            active: false
           });
         };
 
@@ -307,18 +333,15 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
             anticipatePin: 1,
             invalidateOnRefresh: true,
             onEnter: () => {
-              stage.opacity = 0;
-              stage.yPercent = -50;
-              publishFrameStage({
-                chapterId: shell.id,
-                sequence,
-                opacity: 0,
-                yPercent: -50,
-                active: true
-              });
+              activeStageChapter = shell.id;
+              // Publish the values the scrubbed timeline already reached.
+              // Resetting the stage to opacity 0 here used to blank a chapter
+              // when a programmatic jump landed in the middle of its timeline.
+              publishStage();
               playFootage(shell, true);
             },
             onEnterBack: () => {
+              activeStageChapter = shell.id;
               publishFrameStage({
                 chapterId: shell.id,
                 sequence,
@@ -330,11 +353,11 @@ export async function createMotionExperience(root: HTMLElement | null): Promise<
             },
             onLeave: () => {
               playFootage(shell, false);
-              publishFrameStage({ active: false, opacity: 0 });
+              releaseStage();
             },
             onLeaveBack: () => {
               playFootage(shell, false);
-              publishFrameStage({ active: false, opacity: 0, yPercent: -50 });
+              releaseStage(-50);
             },
             onUpdate: publishStage
           }

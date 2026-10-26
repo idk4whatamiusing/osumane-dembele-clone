@@ -55,11 +55,11 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
 
     let disposed = false;
     let controller: AbortController | null = null;
+    let loadingKey: string | null = null;
     let activeSequence: FrameSequence | null = null;
     let activeChapter: string | null = null;
     let currentFrame = 0;
     let ready = false;
-    let wasActive = false;
     let opacity = 0;
     let yPercent = -50;
     let scrollVelocity = 0;
@@ -130,36 +130,54 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
     };
 
     const load = async (sequence: FrameSequence, chapterId: string) => {
+      const key = sequence.basePath;
+
+      // A repeated publish from the same chapter must not abort the batch
+      // that is already in flight. The previous version restarted the whole
+      // sequence on every scroll update, which caused hundreds of duplicate
+      // requests and left the canvas empty after the first chapter.
+      if (loadingKey === key && controller && !controller.signal.aborted) {
+        activeSequence = sequence;
+        activeChapter = chapterId;
+        return;
+      }
+
       controller?.abort();
-      controller = new AbortController();
+      const thisController = new AbortController();
+      controller = thisController;
+      loadingKey = key;
       activeSequence = sequence;
       activeChapter = chapterId;
       currentFrame = 0;
       ready = false;
 
-      let entry = getCacheEntry(sequence.basePath);
-      if (!entry || entry.sequence !== sequence) {
+      let entry = getCacheEntry(key);
+      if (!entry || entry.sequence.basePath !== key) {
         entry = { frames: [], sequence };
         trackCacheEntry(entry);
+      } else {
+        entry.sequence = sequence;
       }
 
       if (entry.frames.length >= sequence.frameCount) {
         ready = true;
+        if (loadingKey === key) loadingKey = null;
         draw();
         return;
       }
 
-      const key = sequence.basePath;
       const urls = Array.from({ length: sequence.frameCount }, (_, index) =>
         resolveMediaPath(frameUrl(sequence, index), profile)
       );
 
-      for (let start = 0; start < urls.length; start += 16) {
-        if (disposed || controller.signal.aborted) return;
+      // A previous pass may have loaded only the first few batches. Resume at
+      // the first missing frame instead of appending a second copy of frame 0.
+      for (let start = entry.frames.length; start < urls.length; start += 24) {
+        if (disposed || thisController.signal.aborted) break;
         const batch = await Promise.all(
-          urls.slice(start, start + 16).map(async (url) => {
+          urls.slice(start, start + 24).map(async (url) => {
             try {
-              const response = await fetch(url, { signal: controller?.signal });
+              const response = await fetch(url, { signal: thisController.signal });
               if (!response.ok) return undefined;
               const blob = await response.blob();
               if ("createImageBitmap" in window) {
@@ -178,22 +196,27 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
             }
           })
         );
-        if (disposed || controller.signal.aborted) {
+        if (disposed || thisController.signal.aborted) {
           closeFrames(batch);
-          return;
+          break;
         }
         const cache = getCacheEntry(key);
         if (cache !== entry) {
           closeFrames(batch);
-          return;
+          break;
         }
         entry.frames.push(...batch);
-        draw();
+        if (activeSequence?.basePath === key) draw();
       }
-      if (!disposed && !controller.signal.aborted) {
+      if (
+        !disposed &&
+        !thisController.signal.aborted &&
+        getCacheEntry(key) === entry
+      ) {
         ready = true;
-        draw();
+        if (activeSequence?.basePath === key) draw();
       }
+      if (loadingKey === key) loadingKey = null;
     };
 
     const closeFrames = (frames: Array<Decoded | undefined>) => {
@@ -218,18 +241,16 @@ export function GlobalFrameStage({ profile }: GlobalFrameStageProps) {
       opacity = next.opacity;
       yPercent = next.yPercent;
       if (next.active && next.sequence && next.chapterId) {
-        const becameActive = !wasActive;
-        wasActive = true;
-        if (becameActive) currentFrame = 0;
-        if (
-          becameActive ||
+        const changed =
           next.chapterId !== activeChapter ||
-          next.sequence !== activeSequence
-        ) {
+          next.sequence.basePath !== activeSequence?.basePath;
+        if (changed) {
           void load(next.sequence, next.chapterId);
         }
       } else if (!next.active) {
-        wasActive = false;
+        controller?.abort();
+        controller = null;
+        loadingKey = null;
         activeChapter = null;
         activeSequence = null;
         currentFrame = 0;

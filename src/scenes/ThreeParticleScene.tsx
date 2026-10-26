@@ -40,7 +40,14 @@ function disposeMaterial(material: THREE.Material): void {
 
 function disposeObject(object: THREE.Object3D): void {
   object.traverse((child) => {
-    if (!(child instanceof THREE.Mesh || child instanceof THREE.Points || child instanceof THREE.Line)) {
+    if (
+      !(
+        child instanceof THREE.Mesh ||
+        child instanceof THREE.Points ||
+        child instanceof THREE.Line ||
+        child instanceof THREE.InstancedMesh
+      )
+    ) {
       return;
     }
     child.geometry.dispose();
@@ -49,27 +56,42 @@ function disposeObject(object: THREE.Object3D): void {
   });
 }
 
-function randomUnitVector(target: THREE.Vector3): THREE.Vector3 {
-  const theta = Math.random() * Math.PI * 2;
-  const phi = Math.acos(2 * Math.random() - 1);
-  const u = Math.random();
-  // Radial density fitted to the reference profile: 16% solid core,
-  // 27% rim shell, 43% hollow shell, 11% mid bias, 3% outer halo.
-  const radius =
-    u < 0.16
-      ? 1.34 * Math.cbrt(Math.random())
-      : u < 0.43
-        ? 1.34 * (0.95 + 0.06 * Math.random())
-        : u < 0.86
-          ? 1.34 * (0.6 + 0.4 * Math.random())
-          : u < 0.97
-            ? 1.34 * (0.6 + 0.25 * Math.random())
-            : 1.34 * (1.04 + 0.47 * Math.random());
-  return target.set(
-    Math.sin(phi) * Math.cos(theta) * radius,
-    Math.cos(phi) * radius,
-    Math.sin(phi) * Math.sin(theta) * radius
-  );
+/**
+ * The reference footer photos are not flat planes: each one is a shallow
+ * curved card. The curve is what makes the ring read as one continuous band
+ * instead of ten separate rectangles.
+ */
+function curvedPanelGeometry(
+  width: number,
+  height: number,
+  curve = 0.3,
+  segmentsX = 30,
+  segmentsY = 20
+): THREE.PlaneGeometry {
+  const geometry = new THREE.PlaneGeometry(width, height, segmentsX, segmentsY);
+  const position = geometry.attributes.position;
+  for (let index = 0; index < position.count; index += 1) {
+    const angle = (position.getX(index) / width) * curve;
+    const radius = 1 / curve;
+    position.setX(index, Math.sin(angle) * radius * width);
+    position.setZ(index, -(Math.cos(angle) - 1) * radius * width);
+  }
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function damp(current: number, target: number, amount: number, delta: number): number {
+  return current + (target - current) * Math.min(amount * delta * 60, 1);
+}
+
+interface FooterParticle {
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  velocity: number;
+  rotationSpeed: THREE.Vector3;
+  initialY: number;
+  initialX: number;
+  swing: number;
 }
 
 function FooterParticleScene({
@@ -120,197 +142,109 @@ function FooterParticleScene({
 
     const mobile = window.matchMedia("(max-width: 991px)").matches;
     const scene = new THREE.Scene();
-    const camera =
-      variant === "hero"
-        ? new THREE.PerspectiveCamera(42, 1, 0.1, 100)
-        : new THREE.OrthographicCamera(-8, 8, 8, -8, 0.1, 100);
-    if (camera instanceof THREE.PerspectiveCamera) {
-      // The sphere of the reference site covers a little under half of the
-      // height of the viewport.
-      camera.position.z = 9.0;
-    } else {
-      camera.position.z = 16;
-    }
-
-    const group = new THREE.Group();
-    const panelRing = new THREE.Group();
-    scene.add(group);
-    scene.add(panelRing);
-    if (variant === "hero") group.position.set(0.02, 0.36, 0);
-    if (variant === "footer") {
-      panelRing.position.y = mobile ? -3.8 : -1.3;
-      panelRing.rotation.x = mobile ? 0.32 : 0.38;
-    }
+    const camera = new THREE.OrthographicCamera(-9, 9, 9, -9, 0.1, 1000);
+    camera.position.set(0, 0, 10);
+    camera.lookAt(0, -3, 0);
 
     renderer.setClearColor(0x000000, 0);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.25 : 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = variant === "hero" ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
     container.appendChild(renderer.domElement);
-    renderer.domElement.style.touchAction = "none";
+    renderer.domElement.style.display = "block";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
 
-    const requestedCount =
-      particleCount ?? (variant === "hero" ? (mobile ? 1000 : 3000) : mobile ? 250 : 500);
-    const count = Math.min(requestedCount, variant === "hero" ? (mobile ? 1000 : 1650) : 500);
-    const basePositions = new Float32Array(count * 3);
-    const positions = new Float32Array(count * 3);
-    const vector = new THREE.Vector3();
-    for (let index = 0; index < count; index += 1) {
-      if (variant === "hero") {
-        randomUnitVector(vector);
-      } else {
-        vector.set(
-          (Math.random() - 0.5) * 14,
-          (Math.random() - 0.5) * 7,
-          (Math.random() - 0.5) * 5
-        );
-      }
-      basePositions[index * 3] = vector.x;
-      basePositions[index * 3 + 1] = vector.y;
-      basePositions[index * 3 + 2] = vector.z;
-      positions[index * 3] = vector.x;
-      positions[index * 3 + 1] = vector.y;
-      positions[index * 3 + 2] = vector.z;
-    }
-
-    const particleGeometry = new THREE.BufferGeometry();
-    particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    if (variant === "hero") {
-      const colors = new Float32Array(count * 3);
-      const scales = new Float32Array(count);
-      // Ball gold reads brighter than the brand gold (matches reference measurements).
-      const gold = new THREE.Color(accent).lerp(new THREE.Color("#f0d894"), 0.45);
-      const deep = new THREE.Color("#bfa871");
-      const pale = new THREE.Color("#f8f1dd");
-      const olive = new THREE.Color("#adb178");
-      const mixed = new THREE.Color();
-      for (let index = 0; index < count; index += 1) {
-        const roll = Math.random();
-        if (roll < 0.44) {
-          mixed.copy(gold).lerp(pale, 0.03 + Math.random() * 0.09);
-        } else if (roll < 0.65) {
-          mixed.copy(pale).multiplyScalar(0.92 + Math.random() * 0.08);
-        } else if (roll < 0.87) {
-          mixed.copy(gold).lerp(deep, Math.random() * 0.4);
-        } else if (roll < 0.95) {
-          mixed.copy(gold).lerp(olive, 0.1 + Math.random() * 0.25);
-        } else {
-          mixed.copy(deep).lerp(olive, Math.random() * 0.3);
-        }
-        colors[index * 3] = mixed.r;
-        colors[index * 3 + 1] = mixed.g;
-        colors[index * 3 + 2] = mixed.b;
-        const sizeRoll = Math.random();
-        let scale =
-          sizeRoll < 0.38
-            ? 0.55 + Math.random() * 0.35
-            : sizeRoll < 0.78
-              ? 0.95 + Math.random() * 0.4
-              : 1.5 + Math.random() * 0.65;
-        const bx = basePositions[index * 3];
-        const by = basePositions[index * 3 + 1];
-        const bz = basePositions[index * 3 + 2];
-        if (Math.hypot(bx, by, bz) > 1.45) scale *= 0.62;
-        scales[index] = scale;
-      }
-      particleGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      particleGeometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 1));
-    }
-    const particleMaterial = new THREE.PointsMaterial({
-      color: variant === "hero" ? 0xffffff : new THREE.Color(accent),
-      vertexColors: variant === "hero",
-      size: variant === "hero" ? (mobile ? 0.09 : 0.095) : 0.022,
-      transparent: true,
-      opacity: variant === "hero" ? 1 : 0.5,
-      depthWrite: false,
-      blending: THREE.NormalBlending
-    });
-    if (variant === "hero") {
-      particleMaterial.onBeforeCompile = (shader) => {
-        shader.vertexShader = shader.vertexShader
-          .replace(
-            "void main() {",
-            "attribute float aScale;\nvarying float vAngle;\nvoid main() {\n\tvAngle = fract(aScale * 7.13) * 6.2831853;"
-          )
-          .replace("gl_PointSize = size;", "gl_PointSize = size * aScale;");
-        shader.fragmentShader = shader.fragmentShader.replace(
-          "void main() {",
-          "varying float vAngle;\nvoid main() {\n\tvec2 shardCoord = mat2(cos(vAngle), -sin(vAngle), sin(vAngle), cos(vAngle)) * (gl_PointCoord - 0.5) + 0.5;\n\tif (shardCoord.x < 0.0 || shardCoord.x > 1.0 || shardCoord.y < 0.0 || shardCoord.y > 1.0) discard;"
-        );
-      };
-    }
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
-    group.add(particles);
-
-    const ballGeometry = new THREE.IcosahedronGeometry(1.08, 3);
-    const ballMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(accent),
-      metalness: 0.72,
-      roughness: 0.24,
-      transparent: true,
-      opacity: 0.82
-    });
-    const fallbackBall = new THREE.Mesh(ballGeometry, ballMaterial);
-    if (variant === "footer") group.add(fallbackBall);
-
-    scene.add(new THREE.AmbientLight(0xffffff, 1.8));
-    const keyLight = new THREE.PointLight(new THREE.Color(accent), 18, 12);
-    keyLight.position.set(2.5, 3, 4);
+    scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    keyLight.position.set(5, 5, 5);
     scene.add(keyLight);
-    const rimLight = new THREE.PointLight(0xffffff, 9, 10);
-    rimLight.position.set(-4, 1, 2);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    rimLight.position.set(-5, 5, -5);
     scene.add(rimLight);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 1);
+    fillLight.position.set(0, -5, 0);
+    scene.add(fillLight);
 
-    let loadedModel: THREE.Object3D | undefined;
-    let environment: THREE.Texture | undefined;
+    const group = new THREE.Group();
+    group.position.y = -5;
+    group.rotation.z = THREE.MathUtils.degToRad(8);
+    scene.add(group);
+
+    const photoRing: THREE.Mesh[] = [];
+    const panelGeometry = curvedPanelGeometry(6, 3.375);
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin("anonymous");
     const loadedTextures: THREE.Texture[] = [];
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
 
-    if (variant === "footer" && hdr) {
-      new RGBELoader().load(hdr, (texture) => {
-        if (disposed) {
-          texture.dispose();
-          return;
-        }
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        environment = texture;
-        scene.environment = texture;
+    textures.forEach((texturePath, index) => {
+      const material = new THREE.MeshStandardMaterial({
+        map: null,
+        side: THREE.DoubleSide,
+        metalness: 0,
+        roughness: 1,
+        envMap: null
       });
-    }
+      const panel = new THREE.Mesh(panelGeometry, material);
+      const angle = (index / Math.max(textures.length, 1)) * Math.PI * 2;
+      panel.position.set(Math.sin(angle) * 10, 0, Math.cos(angle) * 10);
+      panel.rotation.y = Math.PI + angle;
+      panel.userData.initialAngle = angle;
+      panel.castShadow = true;
+      panel.receiveShadow = true;
+      group.add(panel);
+      photoRing.push(panel);
 
-    if (variant === "footer") {
-      const textureLoader = new THREE.TextureLoader();
-      textures.forEach((texturePath, index) => {
-        textureLoader.load(texturePath, (texture) => {
+      textureLoader.load(
+        texturePath,
+        (texture) => {
           if (disposed) {
             texture.dispose();
             return;
           }
           texture.colorSpace = THREE.SRGBColorSpace;
           loadedTextures.push(texture);
-          const panel = new THREE.Mesh(
-            new THREE.PlaneGeometry(mobile ? 3.7 : 4.9, mobile ? 2.2 : 2.7, 8, 1),
-            new THREE.MeshStandardMaterial({
-              map: texture,
-              transparent: true,
-              opacity: 1,
-              side: THREE.DoubleSide,
-              roughness: 0.62,
-              metalness: 0.06
-            })
-          );
-          const angle = (index / Math.max(textures.length, 1)) * Math.PI * 2;
-          const radius = mobile ? 6.4 : 8.0;
-          panel.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-          panel.rotation.set(0.08, -angle + Math.PI / 2, 0);
-          panelRing.add(panel);
-        });
-      });
+          material.map = texture;
+          material.needsUpdate = true;
+        },
+        undefined,
+        () => undefined
+      );
+    });
+
+    let environment: THREE.Texture | undefined;
+    if (hdr) {
+      new RGBELoader().load(
+        hdr,
+        (texture) => {
+          if (disposed) {
+            texture.dispose();
+            return;
+          }
+          texture.mapping = THREE.EquirectangularReflectionMapping;
+          environment = texture;
+          trophy?.traverse((child) => {
+            if (!(child instanceof THREE.Mesh)) return;
+            const material = child.material;
+            if (material instanceof THREE.MeshStandardMaterial) {
+              material.envMap = texture;
+              material.envMapIntensity = 1;
+              material.needsUpdate = true;
+            }
+          });
+        },
+        undefined,
+        () => undefined
+      );
     }
 
-    if (variant === "footer" && model) {
+    let trophy: THREE.Group | undefined;
+    let trophyScale = 0;
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+    if (model) {
       const loader = new GLTFLoader();
       loader.setDRACOLoader(dracoLoader);
       loader.load(
@@ -320,101 +254,167 @@ function FooterParticleScene({
             disposeObject(gltf.scene);
             return;
           }
-          loadedModel = gltf.scene;
-          const bounds = new THREE.Box3().setFromObject(loadedModel);
+          const loaded = gltf.scene;
+          const pivot = loaded.getObjectByName("Object_6") ?? null;
+
+          const bounds = new THREE.Box3().setFromObject(loaded);
           const size = bounds.getSize(new THREE.Vector3());
-          const center = bounds.getCenter(new THREE.Vector3());
-          const scale = (mobile ? 7.6 : 10.5) / Math.max(size.x, size.y, size.z, 0.001);
-          loadedModel.scale.setScalar(scale);
-          loadedModel.position.sub(center.multiplyScalar(scale));
-          loadedModel.position.y -= mobile ? 5.0 : 2.4;
-          loadedModel.visible = true;
-          fallbackBall.visible = false;
-          group.add(loadedModel);
+          const scale = (2 / Math.max(size.x, size.y, size.z, 0.001)) * 7;
+          const root = new THREE.Group();
+
+          if (pivot) {
+            const worldPosition = new THREE.Vector3();
+            pivot.getWorldPosition(worldPosition);
+            loaded.position.set(
+              -worldPosition.x - 0.15,
+              -worldPosition.y,
+              -worldPosition.z
+            );
+            loaded.scale.setScalar(scale);
+            root.position.y = -6.5;
+          } else {
+            const center = bounds.getCenter(new THREE.Vector3());
+            loaded.position.set(-center.x, -center.y, -center.z);
+            loaded.scale.setScalar(scale);
+            root.position.y = -7;
+          }
+
+          loaded.traverse((child) => {
+            if (!(child instanceof THREE.Mesh)) return;
+            child.castShadow = true;
+            child.receiveShadow = true;
+            const material = child.material;
+            if (material instanceof THREE.MeshStandardMaterial) {
+              material.metalness = 1;
+              material.roughness = 0.1;
+              const color = new THREE.Color(0xefff00);
+              color.offsetHSL(0, -0.75, 0);
+              material.color.copy(color);
+              if (environment) {
+                material.envMap = environment;
+                material.envMapIntensity = 1;
+              }
+              material.needsUpdate = true;
+            }
+          });
+
+          root.add(loaded);
+          root.scale.setScalar(0);
+          group.add(root);
+          trophy = root;
         },
         undefined,
         () => undefined
       );
     }
 
-    const confettiCount = mobile ? 120 : 280;
-    const confettiPositions = new Float32Array(confettiCount * 3);
-    for (let index = 0; index < confettiCount; index += 1) {
-      confettiPositions[index * 3] = (Math.random() - 0.5) * 12;
-      confettiPositions[index * 3 + 1] = 3 + Math.random() * 7;
-      confettiPositions[index * 3 + 2] = (Math.random() - 0.5) * 4;
-    }
-    const confettiGeometry = new THREE.BufferGeometry();
-    confettiGeometry.setAttribute("position", new THREE.BufferAttribute(confettiPositions, 3));
-    const confettiMaterial = new THREE.PointsMaterial({
+    const requestedParticles = particleCount ?? (mobile ? 250 : 500);
+    const count = Math.min(requestedParticles, mobile ? 250 : 500);
+    const particleGeometry = new THREE.BoxGeometry(
+      mobile ? 0.15 : 0.1,
+      mobile ? 0.3 : 0.2,
+      mobile ? 0.03 : 0.02
+    );
+    const particleMaterial = new THREE.MeshStandardMaterial({
       color: new THREE.Color(accent),
-      size: 0.07,
-      transparent: true,
-      opacity: 0.9,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending
+      metalness: 0,
+      roughness: 1,
+      emissive: new THREE.Color(accent),
+      emissiveIntensity: 0.3
     });
-    const confetti = new THREE.Points(confettiGeometry, confettiMaterial);
-    confetti.visible = false;
-    panelRing.add(confetti);
-    let confettiActive = false;
-    const onAudioComplete = () => {
-      confettiActive = true;
-      confetti.visible = true;
-      panelRing.scale.setScalar(1.08);
-    };
-    window.addEventListener("osumane:audio-complete", onAudioComplete);
+    const particles = new THREE.InstancedMesh(
+      particleGeometry,
+      particleMaterial,
+      count
+    );
+    particles.visible = false;
+    particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(particles);
 
-    const pointer = new THREE.Vector2();
-    const onPointerMove = (event: PointerEvent) => {
-      pointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
-      pointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
-    };
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    const particleData: FooterParticle[] = [];
+    const matrix = new THREE.Matrix4();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3(1, 1, 1);
+    for (let index = 0; index < count; index += 1) {
+      const position = new THREE.Vector3(
+        (Math.random() - 0.5) * 30,
+        10 + Math.random() * 3,
+        (Math.random() - 0.5) * 20
+      );
+      const rotation = new THREE.Euler(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+      quaternion.setFromEuler(rotation);
+      matrix.compose(position, quaternion, scale);
+      particles.setMatrixAt(index, matrix);
+      particleData.push({
+        position,
+        rotation,
+        velocity: 0.05 + Math.random() * 0.05,
+        rotationSpeed: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.1,
+          (Math.random() - 0.5) * 0.1,
+          (Math.random() - 0.5) * 0.1
+        ),
+        initialY: position.y,
+        initialX: position.x,
+        swing: Math.random() * Math.PI * 2
+      });
+    }
+    particles.instanceMatrix.needsUpdate = true;
 
-    let dragging = false;
-    let previousX = 0;
-    let previousY = 0;
-    const onPointerDown = (event: PointerEvent) => {
-      dragging = true;
-      previousX = event.clientX;
-      previousY = event.clientY;
-      renderer.domElement.setPointerCapture(event.pointerId);
+    let holding = false;
+    let ringAngle = 0;
+    let targetRingAngle = 0;
+    let radius = 10;
+    let targetRadius = 10;
+    let holdSpeed = 0.005;
+
+    const resetParticles = () => {
+      particleData.forEach((particle, index) => {
+        particle.position.set(
+          particle.initialX,
+          particle.initialY,
+          particle.position.z
+        );
+        particle.swing = Math.random() * Math.PI * 2;
+        quaternion.setFromEuler(particle.rotation);
+        matrix.compose(particle.position, quaternion, scale);
+        particles.setMatrixAt(index, matrix);
+      });
+      particles.instanceMatrix.needsUpdate = true;
     };
-    const onPointerUp = () => {
-      dragging = false;
+
+    const onHoldStart = () => {
+      holding = true;
+      holdSpeed = 0.005;
+      targetRadius = 9.5;
+      particles.visible = true;
+      resetParticles();
     };
-    const onPointerDrag = (event: PointerEvent) => {
-      if (!dragging) return;
-      group.rotation.y += (event.clientX - previousX) * 0.008;
-      group.rotation.x += (event.clientY - previousY) * 0.006;
-      previousX = event.clientX;
-      previousY = event.clientY;
+    const onHoldEnd = () => {
+      holding = false;
+      holdSpeed = 0.005;
+      targetRadius = 10;
     };
-    renderer.domElement.addEventListener("pointerdown", onPointerDown);
-    renderer.domElement.addEventListener("pointermove", onPointerDrag);
-    renderer.domElement.addEventListener("pointerup", onPointerUp);
-    renderer.domElement.addEventListener("pointercancel", onPointerUp);
+    window.addEventListener("osumane:hold-start", onHoldStart);
+    window.addEventListener("osumane:hold-end", onHoldEnd);
 
     const resize = () => {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      if (!width || !height) return;
-      // Cap the drawing buffer so high-DPI/4K windows cannot exhaust GPU memory.
-      const dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.25 : 1.5);
-      const capped = Math.min(dpr, Math.sqrt(2_600_000 / (width * height)));
-      renderer.setPixelRatio(Math.max(capped, 0.5));
-      const aspect = width / height;
-      if (camera instanceof THREE.PerspectiveCamera) {
-        camera.aspect = aspect;
-        camera.updateProjectionMatrix();
-      } else {
-        camera.left = -8 * aspect;
-        camera.right = 8 * aspect;
-        camera.top = 8;
-        camera.bottom = -8;
-        camera.updateProjectionMatrix();
-      }
+      const width = container.clientWidth || window.innerWidth;
+      const height = container.clientHeight || window.innerHeight;
+      const aspect = width / Math.max(height, 1);
+      const isMobile = width < 991;
+      const frustum = isMobile ? 30 : 18;
+      const topOffset = isMobile ? 5 : 0;
+      camera.left = (-frustum * aspect) / 2;
+      camera.right = (frustum * aspect) / 2;
+      camera.top = frustum / 2 + topOffset;
+      camera.bottom = -frustum / 2 + topOffset;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setSize(width, height, false);
     };
     const resizeObserver = new ResizeObserver(resize);
@@ -443,8 +443,8 @@ function FooterParticleScene({
     renderer.domElement.addEventListener("webglcontextlost", onContextLost);
     renderer.domElement.addEventListener("webglcontextrestored", onContextRestored);
 
-    const started = performance.now();
-    renderer.setAnimationLoop(() => {
+    let previousTime = 0;
+    renderer.setAnimationLoop((time) => {
       if (failed || disposed || !visible) return;
       if (contextLost) {
         if (performance.now() - contextLostAt > 2500) {
@@ -452,52 +452,58 @@ function FooterParticleScene({
         }
         return;
       }
-      const elapsed = (performance.now() - started) / 1000;
-      try {
-        if (variant === "hero") {
-          const progress = THREE.MathUtils.clamp(window.scrollY / (window.innerHeight * 0.58), 0, 1);
-          const expansion = 1 + progress * 3.2;
-          for (let index = 0; index < count; index += 1) {
-            const baseIndex = index * 3;
-            const x = basePositions[baseIndex];
-            const y = basePositions[baseIndex + 1];
-            const z = basePositions[baseIndex + 2];
-            const distance = Math.max(0.001, Math.hypot(x - pointer.x * 4, y + pointer.y * 4, z));
-            const repel = progress * 0.18 + (variant === "hero" ? 0.035 : 0);
-            positions[baseIndex] = x * expansion + (x / distance) * repel * (1 + Math.abs(pointer.x));
-            positions[baseIndex + 1] = y * expansion + (y / distance) * repel * (1 + Math.abs(pointer.y));
-            positions[baseIndex + 2] = z * expansion + (z / distance) * repel;
-          }
-          particleGeometry.attributes.position.needsUpdate = true;
-          particleMaterial.opacity = 1 * (1 - progress * 0.92);
-          group.scale.setScalar(1 + progress * 0.55);
-          group.rotation.y = elapsed * 0.075 + pointer.x * 0.16;
-          group.rotation.x = Math.sin(elapsed * 0.22) * 0.08 - pointer.y * 0.08;
-          renderer.domElement.style.opacity = `${1 - progress * 0.88}`;
-        } else {
-          panelRing.rotation.y = elapsed * 0.08 + pointer.x * 0.12;
-          panelRing.rotation.x =
-            (mobile ? 0.32 : 0.38) + Math.sin(elapsed * 0.16) * 0.05 - pointer.y * 0.05;
-          if (loadedModel?.visible) {
-            loadedModel.rotation.y = elapsed * 0.18;
-            loadedModel.rotation.x = Math.sin(elapsed * 0.35) * 0.1;
-          }
-          if (confettiActive) {
-            const positionsAttribute = confettiGeometry.attributes.position as THREE.BufferAttribute;
-            for (let index = 0; index < confettiCount; index += 1) {
-              const offset = index * 3;
-              positionsAttribute.array[offset + 1] -= 0.018 + (index % 7) * 0.002;
-              positionsAttribute.array[offset] += Math.sin(elapsed * 2 + index) * 0.0015;
-            }
-            positionsAttribute.needsUpdate = true;
-            panelRing.scale.lerp(new THREE.Vector3(1, 1, 1), 0.04);
-          }
-        }
-        renderer.render(scene, camera);
-      } catch (error) {
-        fail(`render-loop-error: ${String(error)}`);
-        return;
+
+      const delta = previousTime ? Math.min(0.05, (time - previousTime) / 1000) : 0.016;
+      previousTime = time;
+
+      if (!holding) targetRingAngle += 0.0008 * delta * 60;
+      if (holding) {
+        holdSpeed = Math.min(0.15, holdSpeed + 0.0015 * delta * 60);
+        targetRingAngle += holdSpeed * delta * 60;
       }
+      ringAngle = damp(ringAngle, targetRingAngle, 0.05, delta);
+      radius = damp(radius, targetRadius, 0.1, delta);
+
+      if (trophy) {
+        trophyScale = Math.min(1, trophyScale + delta / 0.8);
+        const eased =
+          trophyScale < 1
+            ? 1 + 2.7 * Math.pow(trophyScale - 1, 3) + 1.7 * Math.pow(trophyScale - 1, 2)
+            : 1;
+        trophy.scale.setScalar(eased);
+        trophy.rotation.y = -2 * ringAngle;
+      }
+
+      photoRing.forEach((panel) => {
+        const angle = (panel.userData.initialAngle as number) + ringAngle;
+        panel.position.set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
+        panel.rotation.y = Math.PI + angle;
+      });
+
+      if (particles.visible) {
+        let allBelow = true;
+        for (let index = 0; index < particleData.length; index += 1) {
+          const particle = particleData[index];
+          particle.position.y -= particle.velocity * delta * 60;
+          particle.swing += 0.02 * delta * 60;
+          particle.position.x = particle.initialX + 0.5 * Math.sin(particle.swing);
+          particle.rotation.x += particle.rotationSpeed.x * delta * 60;
+          particle.rotation.y += particle.rotationSpeed.y * delta * 60;
+          particle.rotation.z += particle.rotationSpeed.z * delta * 60;
+          if (particle.position.y < -10 && holding) {
+            particle.position.y = particle.initialY;
+            particle.swing = Math.random() * Math.PI * 2;
+          }
+          if (particle.position.y > -10) allBelow = false;
+          quaternion.setFromEuler(particle.rotation);
+          matrix.compose(particle.position, quaternion, scale);
+          particles.setMatrixAt(index, matrix);
+        }
+        particles.instanceMatrix.needsUpdate = true;
+        if (allBelow && !holding) particles.visible = false;
+      }
+
+      renderer.render(scene, camera);
       if (!readyFired && renderer.domElement.width > 0) {
         readyFired = true;
         onReadyRef.current?.();
@@ -509,19 +515,15 @@ function FooterParticleScene({
       renderer.setAnimationLoop(null);
       resizeObserver.disconnect();
       visibilityObserver.disconnect();
+      window.removeEventListener("osumane:hold-start", onHoldStart);
+      window.removeEventListener("osumane:hold-end", onHoldEnd);
       renderer.domElement.removeEventListener("webglcontextlost", onContextLost);
       renderer.domElement.removeEventListener("webglcontextrestored", onContextRestored);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("osumane:audio-complete", onAudioComplete);
-      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
-      renderer.domElement.removeEventListener("pointermove", onPointerDrag);
-      renderer.domElement.removeEventListener("pointerup", onPointerUp);
-      renderer.domElement.removeEventListener("pointercancel", onPointerUp);
       dracoLoader.dispose();
       environment?.dispose();
       loadedTextures.forEach((texture) => texture.dispose());
       disposeObject(group);
-      disposeObject(panelRing);
+      disposeObject(particles);
       renderer.dispose();
       renderer.forceContextLoss();
       renderer.domElement.remove();
