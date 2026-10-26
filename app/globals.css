@@ -2074,7 +2074,7 @@ html:not(.js) .preloader {
 
 .chapter-jersey__numbers {
   position: absolute;
-  z-index: 4;
+  z-index: 1;
   top: 50%;
   left: 50%;
   display: flex;
@@ -2775,7 +2775,7 @@ html:not(.js) .preloader {
   .motion-enhanced .chapter-jersey__numbers {
     top: 50%;
     gap: 1rem;
-    font-size: 49vw;
+    font-size: 61.5vw;
     letter-spacing: normal;
   }
 
