@@ -236,10 +236,9 @@ ul {
   display: grid;
   place-content: center;
   overflow: hidden;
+  padding: 1.25em;
   background: var(--page-bg, #fffcf5);
   color: var(--page-accent, #c1b28b);
-  animation: preloader-away 2.2s var(--ease-out) forwards;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .preloader::after {
@@ -247,7 +246,7 @@ ul {
   inset: 0;
   background-image: url("/assets/reference/images/grain.webp");
   background-repeat: repeat;
-  background-size: 15rem 16.875rem;
+  background-size: 18.75rem 18.75rem;
   content: "";
   opacity: 0.35;
   pointer-events: none;
@@ -270,37 +269,11 @@ ul {
 }
 
 .preloader__sig-svg {
-  width: 313px;
-  max-width: 80vw;
+  width: 312.5px;
+  max-width: calc(100vw - 2.5rem);
   height: auto;
   color: #c1b28b;
   opacity: 0;
-}
-
-.preloader__sig-line {
-  clip-path: inset(0 100% 0 0);
-  animation: sig-draw 1.6s cubic-bezier(0.55, 0, 0.35, 1) 0.25s forwards;
-}
-
-.preloader__bar {
-  position: absolute;
-  z-index: 2;
-  right: 1.125rem;
-  bottom: 1.125rem;
-  left: 1.125rem;
-  display: block;
-  height: 1px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--page-accent, #c1b28b) 24%, transparent);
-}
-
-.preloader__bar i {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: var(--page-accent, #c1b28b);
-  transform-origin: left center;
-  animation: sig-progress 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* --- The grain that covers the whole site -------------------------------- */
@@ -1412,21 +1385,6 @@ html:not(.js) .site-nav__track a {
   50% { transform: translate3d(-3%, 2%, 0); }
   75% { transform: translate3d(3%, 3%, 0); }
   100% { transform: translate3d(-2%, -2%, 0); }
-}
-
-@keyframes sig-draw {
-  from { clip-path: inset(0 100% 0 0); }
-  to { clip-path: inset(0 -4% 0 0); }
-}
-
-@keyframes sig-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
-@keyframes preloader-away {
-  0%, 62% { visibility: visible; opacity: 1; }
-  100% { visibility: hidden; opacity: 0; }
 }
 
 @keyframes sound-ring {

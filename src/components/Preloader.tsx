@@ -20,11 +20,23 @@ export function Preloader({ name }: PreloaderProps) {
     html.classList.add("is-loading");
     window.scrollTo(0, 0);
 
-    // The reference loader is a drawn wordmark rather than a font. Fade the
-    // complete mark into place instead of stroking half a megabyte of SVG
-    // paths, which is expensive and makes the loader look like a different
-    // word while it is still incomplete.
-    if (svg) gsap.set(svg, { opacity: 0, y: 10 });
+    const paths = svg
+      ? Array.from(svg.querySelectorAll<SVGPathElement>("path"))
+      : [];
+
+    // Match the reference loader: each traced path is stroked into place and
+    // then filled, with a 0.2s stagger between paths.
+    if (svg) {
+      gsap.set(svg, { opacity: 0 });
+      paths.forEach((path) => {
+        const length = path.getTotalLength();
+        gsap.set(path, {
+          strokeDasharray: length,
+          strokeDashoffset: length,
+          fillOpacity: 0
+        });
+      });
+    }
 
     // The loader is allowed to finish its signature while the hero scene
     // warms up. The site is only revealed once both are ready.
@@ -48,25 +60,28 @@ export function Preloader({ name }: PreloaderProps) {
       gsap.to(root, {
         opacity: 0,
         duration: 0.2,
-        ease: "none",
+        ease: "power2.inOut",
         onComplete: finish
       });
     };
 
     const signature = gsap.timeline({
-      delay: 0.15,
       onComplete: () => {
         signatureDone = true;
         maybeReveal();
       }
     });
     if (svg) {
-      signature.to(svg, {
-        opacity: 1,
-        y: 0,
-        duration: 0.9,
-        ease: "power2.out"
-      });
+      signature.set(svg, { opacity: 1 });
+      if (paths.length) {
+        signature.to(paths, {
+          strokeDashoffset: 0,
+          fillOpacity: 1,
+          duration: 1,
+          stagger: 0.2,
+          ease: "power2.inOut"
+        });
+      }
     }
     signature.to({}, { duration: 0.7 });
 
@@ -115,14 +130,12 @@ export function Preloader({ name }: PreloaderProps) {
               key={i}
               d={d}
               fill="currentColor"
+              fillOpacity={0}
               stroke="currentColor"
               strokeWidth={1}
             />
           ))}
         </svg>
-      </span>
-      <span className="preloader__bar" aria-hidden="true">
-        <i />
       </span>
       <span className="sr-only">{ready ? "" : name}</span>
     </div>
