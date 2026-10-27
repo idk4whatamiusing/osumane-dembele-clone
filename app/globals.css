@@ -243,6 +243,7 @@ ul {
 
 .preloader::after {
   position: absolute;
+  z-index: 3;
   inset: 0;
   background-image: url("/assets/reference/images/grain.webp");
   background-repeat: repeat;
